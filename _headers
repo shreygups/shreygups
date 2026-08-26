@@ -23,6 +23,12 @@
 /card.gif
   Cache-Control: public, max-age=86400
 
+/card3.gif
+  Cache-Control: public, max-age=86400
+
+/card3.jpg
+  Cache-Control: public, max-age=86400
+
 /favicon.gif
   Cache-Control: public, max-age=86400
 
