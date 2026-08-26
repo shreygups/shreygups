@@ -1171,8 +1171,7 @@ function updateFavicon(fill) {
   if (fill === favShown || realT - favAt < 0.08) return;
   favShown = fill;
   favAt = realT;
-  favCtx.fillStyle = "#ffffff";
-  favCtx.fillRect(0, 0, 64, 64);
+  favCtx.clearRect(0, 0, 64, 64);
   favCtx.fillStyle = fill;
   fillSquircle(favCtx, 2, 2, 60);
   favCanvas.toBlob(blob => {
