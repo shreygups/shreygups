@@ -506,7 +506,8 @@ function syncWorkLinks() {
     a.dataset.label = label;
     const work = a.getAttribute("data-work");
     const go = a.getAttribute("data-go");
-    const active = (work && workLocked && work === workId) || (!work && go && go === drawerId);
+    const active = (work && workLocked && work === workId) ||
+      (!work && go && go === drawerId && paneIntentOpen);
     a.replaceChildren(document.createTextNode(label));
     if (active) {
       const icon = document.createElement("span");
