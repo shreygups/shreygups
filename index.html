@@ -2,13 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Shrey Gupta</title>
 <meta name="description" content="Shrey Gupta">
 <meta name="theme-color" content="#140c08">
+<meta name="color-scheme" content="dark">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shrey Gupta">
+<meta name="application-name" content="Shrey Gupta">
 <link rel="canonical" href="https://shreygups.com/">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="favicon.gif" type="image/gif" sizes="64x64">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
 <meta property="og:title" content="Shrey Gupta">
 <meta property="og:description" content="Shrey Gupta">
 <meta property="og:type" content="website">
@@ -68,28 +76,39 @@
     --font: americanGrotesk, "americanGrotesk Fallback", Arial, sans-serif;
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
+  html, body {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     margin: 0;
     overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
     background: var(--bg);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  body {
     color: var(--ink);
     font: 400 var(--fs) / var(--lh) var(--font);
     font-synthesis: none;
     font-kerning: normal;
     text-rendering: optimizeLegibility;
-    touch-action: none;
-    overscroll-behavior: none;
-    -webkit-tap-highlight-color: transparent;
   }
-  body.blog-open { touch-action: manipulation; }
 
   #stage {
-    position: relative;
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: 100dvh;
+    height: 100%;
     overflow: hidden;
     background: var(--bg);
+    touch-action: none;
   }
   canvas {
     position: absolute;
@@ -119,7 +138,6 @@
   }
   #deck.show {
     pointer-events: auto;
-    touch-action: pan-y;
   }
   #drawer {
     position: absolute;
@@ -172,13 +190,17 @@
     width: var(--pane-w, 25%);
     height: 100%;
     margin: 0;
-    padding: var(--cell);
-    padding-left: max(var(--cell), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--cell), env(safe-area-inset-right, 0px));
+    padding: max(var(--cell), env(safe-area-inset-top, 0px))
+             max(var(--cell), env(safe-area-inset-right, 0px))
+             max(var(--cell), env(safe-area-inset-bottom, 0px))
+             max(var(--cell), env(safe-area-inset-left, 0px));
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    touch-action: pan-y;
+    -webkit-user-select: text;
+    user-select: text;
     color: var(--ink);
     background: var(--bg);
     scrollbar-width: thin;
@@ -189,6 +211,8 @@
     color: var(--link);
     text-decoration: none;
     transition: color 0.4s linear;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
   }
   .pane a:hover,
   .pane a:focus-visible,
@@ -851,6 +875,7 @@ function onMove(e) {
 }
 document.addEventListener("pointerdown", onDown, { passive: true });
 document.addEventListener("pointerup", () => { dragging = false; }, { passive: true });
+document.addEventListener("pointercancel", () => { dragging = false; }, { passive: true });
 document.addEventListener("pointermove", onMove, { passive: true });
 document.addEventListener("mousemove", onMove, { passive: true });
 
@@ -1460,6 +1485,34 @@ addEventListener("keydown", e => {
 });
 
 addEventListener("resize", setup);
+addEventListener("orientationchange", setup);
+if (visualViewport) {
+  visualViewport.addEventListener("resize", setup);
+  visualViewport.addEventListener("scroll", () => { scrollTo(0, 0); });
+}
+addEventListener("scroll", () => { scrollTo(0, 0); }, { passive: true });
+
+const lockZoom = e => { e.preventDefault(); };
+addEventListener("gesturestart", lockZoom, { passive: false });
+addEventListener("gesturechange", lockZoom, { passive: false });
+addEventListener("gestureend", lockZoom, { passive: false });
+document.addEventListener("touchmove", e => {
+  if (e.touches.length > 1) { e.preventDefault(); return; }
+  if (!e.target.closest(".pane")) e.preventDefault();
+}, { passive: false });
+document.addEventListener("dblclick", e => {
+  if (!e.target.closest(".pane")) e.preventDefault();
+}, { passive: false });
+let lastTap = 0;
+document.addEventListener("touchend", e => {
+  const now = Date.now();
+  if (now - lastTap <= 350 && !e.target.closest("a, .pane")) e.preventDefault();
+  lastTap = now;
+}, { passive: false });
+document.addEventListener("contextmenu", e => {
+  if (!e.target.closest(".pane")) e.preventDefault();
+});
+
 document.addEventListener("visibilitychange", () => {
   cancelAnimationFrame(raf);
   if (document.hidden) {
@@ -1475,7 +1528,6 @@ setup();
 if (location.hash || location.search) history.replaceState(null, "", location.pathname);
 deckEl.classList.add("show");
 deckEl.setAttribute("aria-hidden", "false");
-document.body.classList.add("blog-open");
 raf = requestAnimationFrame(frame);
 })();
 </script>
