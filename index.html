@@ -1,0 +1,1484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shrey Gupta</title>
+<meta name="description" content="Shrey Gupta">
+<meta name="theme-color" content="#140c08">
+<link rel="canonical" href="https://shreygups.com/">
+<link rel="icon" href="favicon.gif" type="image/gif" sizes="64x64">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:title" content="Shrey Gupta">
+<meta property="og:description" content="Shrey Gupta">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shreygups.com/">
+<meta property="og:image" content="https://shreygups.com/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image" content="https://shreygups.com/og.gif">
+<meta property="og:image:type" content="image/gif">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Shrey Gupta">
+<meta name="twitter:description" content="Shrey Gupta">
+<meta name="twitter:image" content="https://shreygups.com/og.gif">
+<style>
+  @font-face {
+    font-family: americanGrotesk;
+    src: url("fonts/american-grotesk-regular.woff2") format("woff2");
+    font-display: swap;
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: americanGrotesk;
+    src: url("fonts/american-grotesk-italic.woff2") format("woff2");
+    font-display: swap;
+    font-weight: 400;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: americanGrotesk;
+    src: url("fonts/american-grotesk-medium.woff2") format("woff2");
+    font-display: swap;
+    font-weight: 500;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: americanGrotesk Fallback;
+    src: local(Arial);
+    ascent-override: 99.59%;
+    descent-override: 20.26%;
+    line-gap-override: 0%;
+    size-adjust: 93.79%;
+  }
+  :root {
+    --bg: #140c08;
+    --line: #3a2418;
+    --ink: #fff6e8;
+    --accent: #ff9f1c;
+    --link: #ffc8a0;
+    --link-on: #ffb07a;
+    --tile: 19px;
+    --gap: 1px;
+    --cell: 20px;
+    --fs: calc(var(--tile) * 0.7);
+    --lh: var(--cell);
+    --font: americanGrotesk, "americanGrotesk Fallback", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 var(--fs) / var(--lh) var(--font);
+    font-synthesis: none;
+    font-kerning: normal;
+    text-rendering: optimizeLegibility;
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body.blog-open { touch-action: manipulation; }
+
+  #stage {
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  /*
+   * SIDEBAR: solid, inset by one unlit tile. A second bar can open
+   * to the right and eat the same width of color tiles.
+   */
+  #deck {
+    --text-amt: 1;
+    position: absolute;
+    top: var(--pane-top, 20px);
+    left: var(--side-pad, 20px);
+    width: var(--pane-w, 25%);
+    height: var(--pane-h, calc(100% - 40px));
+    z-index: 4;
+    overflow: hidden;
+    pointer-events: none;
+    overscroll-behavior: none;
+    background: var(--bg);
+  }
+  #deck.show {
+    pointer-events: auto;
+    touch-action: pan-y;
+  }
+  #drawer {
+    position: absolute;
+    top: var(--pane-top, 20px);
+    left: calc(var(--side-pad, 20px) + var(--pane-w, 25%));
+    width: var(--pane-w, 25%);
+    height: var(--pane-h, calc(100% - 40px));
+    z-index: 2;
+    overflow: hidden;
+    display: none;
+    background: var(--bg);
+  }
+  #drawer::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 1.5px;
+    z-index: 1;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--accent) 15%, var(--bg));
+  }
+  #drawer.open {
+    display: block;
+    pointer-events: auto;
+  }
+  #drawer-body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  #drawer .pane {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+  #strip {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--pane-gap, 0px);
+    padding: 0;
+    height: 100%;
+    width: max-content;
+    transform: translate3d(calc(-1 * var(--strip-x, 0px)), 0, 0);
+    will-change: transform;
+  }
+  .pane {
+    font: 400 var(--fs) / var(--lh) var(--font);
+    flex: 0 0 auto;
+    width: var(--pane-w, 25%);
+    height: 100%;
+    margin: 0;
+    padding: var(--cell);
+    padding-left: max(var(--cell), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--cell), env(safe-area-inset-right, 0px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    color: var(--ink);
+    background: var(--bg);
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+  .pane > * { position: relative; opacity: var(--text-amt); }
+  .pane a {
+    color: var(--link);
+    text-decoration: none;
+    transition: color 0.4s linear;
+  }
+  .pane a:hover,
+  .pane a:focus-visible,
+  .pane a.is-on { color: var(--link-on); }
+
+  .editorial {
+    font: 400 1rem / 1.5 var(--font);
+    padding: var(--cell);
+  }
+  .editorial .name { font-weight: 500; }
+  .editorial i, .editorial em, .pane i, .pane em { font-style: italic; }
+  .editorial h1 {
+    margin: 0 0 8px;
+    font: inherit;
+    font-weight: 400;
+  }
+  .editorial p {
+    margin: 0 0 1em;
+    max-width: none;
+    text-align: left;
+    hyphens: none;
+  }
+  #about {
+    display: flex;
+    flex-direction: column;
+  }
+  .work-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .work-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+  }
+  .work-list .close-icon {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 0.62em;
+    height: 0.62em;
+    background: currentColor;
+    border-radius: 50%;
+  }
+  .work-list .close-icon svg {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .work-list .close-icon path {
+    fill: none;
+    stroke: var(--bg);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+  #about .social-links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: auto 0 0;
+  }
+
+  #ytwrap {
+    position: fixed;
+    left: -9999px;
+    top: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+  #yt, #yt iframe { border: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="wall"></canvas>
+  <div id="deck" aria-hidden="true">
+    <div id="strip"></div>
+  </div>
+  <div id="drawer">
+    <div id="drawer-body"></div>
+  </div>
+</div>
+
+<!-- Closed panes live here until opened; once opened they stay on the strip. -->
+<div id="hold" hidden>
+  <article class="pane editorial" id="about">
+    <p class="name">Shrey Gupta</p>
+    <p>I'm an engineer based in San Francisco building fun &amp; thoughtful AI products.</p>
+    <p class="work-list">
+      <a href="#olive" data-work="olive" data-go="olive">Olive</a>
+      <a href="#campsite" data-work="campsite" data-go="campsite">Campsite</a>
+      <a href="#nasa" data-work="nasa" data-go="nasa">NASA</a>
+      <a href="#fundsy" data-work="fundsy" data-go="fundsy">Fundsy</a>
+      <a href="#irvine" data-work="irvine" data-go="irvine">Irvine Lights</a>
+      <a href="#phinances" data-work="phinances" data-go="phinances">Phinances</a>
+      <a href="#yappin" data-work="yappin" data-go="yappin">Yappin</a>
+      <a href="#capital" data-work="capital" data-go="capital">Capital One</a>
+    </p>
+    <p class="social-links">
+      <a href="https://twitter.com/shreygups" target="_blank" rel="noopener noreferrer">Twitter</a>
+      <a href="https://github.com/shreygups" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/shreygups/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href="https://www.instagram.com/shreygups/" target="_blank" rel="noopener noreferrer">Instagram</a>
+    </p>
+  </article>
+  <article class="pane editorial" id="olive">
+    <p class="name">Olive</p>
+    <p>wip</p>
+  </article>
+  <article class="pane editorial" id="irvine">
+    <p class="name">Irvine Lights</p>
+    <p>wip</p>
+  </article>
+  <article class="pane editorial" id="fundsy">
+    <p class="name">Fundsy</p>
+    <p>wip</p>
+  </article>
+  <article class="pane editorial" id="phinances">
+    <p class="name">Phinances</p>
+    <p>wip</p>
+  </article>
+  <article class="pane editorial" id="yappin">
+    <p class="name">Yappin</p>
+    <p>wip</p>
+  </article>
+  <article class="pane editorial" id="nasa">
+    <p class="name">NASA</p>
+    <p>wip</p>
+  </article>
+  <article class="pane editorial" id="campsite">
+    <p class="name">Campsite</p>
+    <p>wip</p>
+  </article>
+  <article class="pane editorial" id="capital">
+    <p class="name">Capital One</p>
+    <p>wip</p>
+  </article>
+</div>
+
+<div id="ytwrap"><div id="yt"></div></div>
+
+<script>
+(() => {
+"use strict";
+
+const CFG = {
+  tile: 19, gap: 1, radius: 0,
+  speed: 1,
+  react: 1,
+
+  /* Hot floor → amber → lemon → ember. No near-black stops. */
+  palette: [
+    "#ff2d00", "#ff5400", "#ff6b1a", "#ff8510",
+    "#ff9f1c", "#ffb703", "#ffc933", "#ffd60a",
+    "#ffe566", "#ff8a3d", "#ff4d1a"
+  ],
+
+  colorScale: 0.05,
+  colorDrift: 0.04,
+  colorDriftY: 0.018,
+  colorEvolve: 0.05,
+  hueCycle: 0.012,
+  waveScale: 0.10,
+  waveDriftX: 0.06,
+  waveDriftY: 0.025,
+  waveEvolve: 0.09,
+  threshold: 0.02,
+  gamma: 0.95,
+  floor: 0.55,
+
+  /* Directional drawer wipes; the switch banner is about ten tile rows. */
+  revealIn: 1.3,
+  switchIn: 1.5,
+  colorIn: 0.65,
+  revealSoft: 2.3,
+  jagAmp: 7,
+  drawerFlowCols: 3.1,
+  drawerGlowCols: 4.2,
+  drawerFlexCols: 1.6,
+  switchBandRows: 10,
+  switchBandMinRows: 10,
+  switchFlowRows: 3,
+  switchFlexRows: 2.2,
+
+  dimQuiet: 0.10,
+  swellSpeed: 3.0,
+  rippleSpeed: 7,
+  rippleLife: 2.8,
+  rippleGlow: 0.7,
+
+  /* Short acceleration/deceleration with an intentionally linear middle. */
+  paneAnimDur: 0.52,
+  paneAccel: 0.16
+};
+
+const stage = document.getElementById("stage");
+const wall = document.getElementById("wall");
+const ctx = wall.getContext("2d");
+const deckEl = document.getElementById("deck");
+const stripEl = document.getElementById("strip");
+const holdEl = document.getElementById("hold");
+const drawerEl = document.getElementById("drawer");
+const drawerBodyEl = document.getElementById("drawer-body");
+let drawerId = null;
+const drawerSwitches = [];
+const PANE_ORDER = ["about", "olive", "campsite", "nasa", "fundsy", "irvine", "phinances", "yappin", "capital"];
+const paneById = Object.fromEntries(
+  Array.from(holdEl.querySelectorAll(".pane")).map(p => [p.id, p])
+);
+const opened = new Set();
+let paneEls = [];
+
+let paneW = 0, paneH = 0, paneGap = 0, paneTop = 0, sidePad = 0;
+let paneStride = 0;
+let colorLeft = 1;
+let homeRight = 1, drawerCols = 0, drawerL = 1, drawerR = 1;
+let paneIntentOpen = false;
+let paneWaveSeq = 0;
+const paneWaves = [];
+let paneCellOpen = new Uint8Array(0);
+let paneCellEvent = new Uint32Array(0);
+let targetPane = 0, stripX = 0, stripTarget = 0, stripFrom = 0, stripAnimT = 1;
+
+function fillLUT(out, palette) {
+  const stops = palette.map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
+  const n = stops.length;
+  for (let k = 0; k < 512; k++) {
+    const s = (k / 512) * n;
+    const i0 = Math.floor(s);
+    let f = s - i0;
+    f = f * f * (3 - 2 * f);
+    const a = stops[i0 % n], b = stops[(i0 + 1) % n];
+    for (let c = 0; c < 3; c++) out[k * 3 + c] = Math.sqrt(a[c] * a[c] * (1 - f) + b[c] * b[c] * f);
+  }
+}
+const lutFrom = new Uint8ClampedArray(512 * 3);
+const lutTo = new Uint8ClampedArray(512 * 3);
+fillLUT(lutFrom, CFG.palette);
+fillLUT(lutTo, CFG.palette);
+let lutT = 1, lutDur = 0.4;
+const cache = new Array(512 * 64);
+
+const WORK = {
+  olive: {
+    seed: 11,
+    palette: ["#6b8f3a", "#8faf4a", "#c4b44a", "#e6d36a", "#f0e6a8", "#9aaa4a"]
+  },
+  irvine: {
+    seed: 23,
+    palette: ["#fff6d0", "#ffe566", "#ffd60a", "#c8f0ff", "#9ad8ff", "#ffe8a0"]
+  },
+  fundsy: {
+    seed: 31,
+    palette: ["#3d9a4a", "#7bbf4a", "#d4e05a", "#ffe566", "#8fd17a", "#c6e86a"]
+  },
+  phinances: {
+    seed: 41,
+    palette: ["#c9a227", "#e6c34a", "#ffe566", "#fff1a8", "#d4a017", "#f0d060"]
+  },
+  yappin: {
+    seed: 53,
+    palette: ["#ff9f1c", "#ffc933", "#ffe566", "#ff6b1a", "#ffd60a", "#ffb703"]
+  },
+  nasa: {
+    seed: 89,
+    palette: ["#4a8fd4", "#7eb6e8", "#c9d8f0", "#ffe566", "#2d6cb5", "#f0e6a8"]
+  },
+  campsite: {
+    seed: 67,
+    palette: ["#ff2d00", "#ff5400", "#ff9f1c", "#ffd60a", "#ff8a3d", "#ff6b1a"]
+  },
+  capital: {
+    seed: 79,
+    palette: ["#c8102e", "#e23a3a", "#ff6b1a", "#ff9f1c", "#ffd0a0", "#8b1e2d"]
+  }
+};
+
+let workId = null, workLocked = false, workSeed = 0, workSeedTo = 0;
+
+function syncWorkLinks() {
+  deckEl.querySelectorAll("a[data-work]").forEach(a => {
+    const label = a.dataset.label || a.textContent.replace(/^\[|\]$/g, "");
+    a.dataset.label = label;
+    const active = workLocked && a.getAttribute("data-work") === workId;
+    a.replaceChildren(document.createTextNode(label));
+    if (active) {
+      const icon = document.createElement("span");
+      icon.className = "close-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = '<svg viewBox="0 0 12 12"><path d="M4 4 8 8M8 4 4 8"/></svg>';
+      a.appendChild(icon);
+    }
+    a.classList.toggle("is-on", active);
+  });
+}
+
+function snapshotLUT() {
+  const t = lutT <= 0 ? 0 : lutT >= 1 ? 1 : lutT * lutT * (3 - 2 * lutT);
+  for (let i = 0; i < lutFrom.length; i++) lutFrom[i] = lutFrom[i] * (1 - t) + lutTo[i] * t;
+}
+function applyWork(id, lock, dur) {
+  const next = id || null;
+  if (next === workId) {
+    if (lock) workLocked = true;
+    syncWorkLinks();
+    return;
+  }
+  workId = next;
+  if (lock) workLocked = !!workId;
+  lutDur = dur || CFG.colorIn;
+  const spec = workId && WORK[workId];
+  snapshotLUT();
+  fillLUT(lutTo, spec ? spec.palette : CFG.palette);
+  lutT = 0;
+  /* Keep the procedural field close enough for continuous noise morphing. */
+  workSeedTo = spec ? spec.seed * 0.07 : 0;
+  for (let k = 0; k < cache.length; k++) cache[k] = undefined;
+  syncWorkLinks();
+}
+
+function hash3(x, y, z) {
+  let n = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(z, 1440662683)) | 0;
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  n ^= n >>> 16;
+  return (n >>> 0) / 4294967296;
+}
+function noise3(x, y, z) {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+  const fx = x - xi, fy = y - yi, fz = z - zi;
+  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz);
+  const l = (a, b, t) => a + (b - a) * t;
+  const x00 = l(hash3(xi, yi, zi),         hash3(xi + 1, yi, zi),         u);
+  const x10 = l(hash3(xi, yi + 1, zi),     hash3(xi + 1, yi + 1, zi),     u);
+  const x01 = l(hash3(xi, yi, zi + 1),     hash3(xi + 1, yi, zi + 1),     u);
+  const x11 = l(hash3(xi, yi + 1, zi + 1), hash3(xi + 1, yi + 1, zi + 1), u);
+  return l(l(x00, x10, v), l(x01, x11, v), w);
+}
+function fbm(x, y, z) {
+  return 0.62 * noise3(x, y, z) + 0.38 * noise3(x * 2.17 + 11.3, y * 2.17 + 7.9, z * 2.17 + 3.1);
+}
+
+/* Original center-out splash, with slightly calmer roughness and glow. */
+function splashEdge(i, j, cx, cy, radius) {
+  const d = Math.hypot(i - cx, j - cy);
+  const jag = (fbm(i * 0.3, j * 0.3, 5.7) - 0.5) * CFG.jagAmp;
+  return radius - d + jag;
+}
+function splashRing(e) {
+  return Math.exp(-(e * e) / 5) * 0.8;
+}
+function splashMask(e) {
+  let m = e / CFG.revealSoft;
+  return m < 0 ? 0 : m > 1 ? 1 : m * m * (3 - 2 * m);
+}
+
+/*
+ * Pane motion is impulse-based: every open/close action adds a wave.
+ * Existing waves are never reversed, replaced, or deleted by a later input.
+ */
+function paneWaveFlow(wave, j) {
+  const t = wave.age;
+  const seed = wave.seed;
+  const born = t <= 0 ? 0 : t >= 0.2 ? 1 : t / 0.2;
+  const breath = 0.82 + 0.18 * Math.sin(t * 1.9 + wave.phase);
+  return (
+    (fbm(j * 0.13 + seed, t * 0.22, 73.4 + seed) - 0.5) * 2 * CFG.drawerFlowCols * breath +
+    Math.sin(j * 0.21 + t * 1.35 + wave.phase) * 1.05 +
+    Math.sin(j * 0.47 - t * 0.8 + seed * 0.37) * 0.42
+  ) * born;
+}
+
+function paneWaveEdge(wave, i, j) {
+  const front = wave.x + paneWaveFlow(wave, j);
+  return wave.dir > 0 ? front - i : i - front;
+}
+
+function paneWaveGlowWidth(wave, j) {
+  const t = wave.age;
+  const seed = wave.seed;
+  const flow =
+    (fbm(j * 0.15 + seed * 0.4, t * 0.18, 146.2 + seed) - 0.5) * 2 * CFG.drawerFlexCols +
+    Math.sin(j * 0.28 - t * 1.1 + wave.phase) * 0.55;
+  const breath = Math.sin(t * 1.6 + seed * 0.7) * 0.65;
+  return Math.max(1.5, CFG.drawerGlowCols + flow + breath);
+}
+
+function ensurePaneCells() {
+  const size = Math.max(0, cols * rows);
+  if (paneCellOpen.length === size) return;
+  paneCellOpen = new Uint8Array(size);
+  paneCellEvent = new Uint32Array(size);
+  if (paneIntentOpen && drawerId) paneCellOpen.fill(1);
+}
+
+function paneCellsMatch(open) {
+  const wanted = open ? 1 : 0;
+  for (let j = 1; j < rows - 1; j++) {
+    for (let i = drawerL; i < drawerR; i++) {
+      if (paneCellOpen[j * cols + i] !== wanted) return false;
+    }
+  }
+  return true;
+}
+
+function emitPaneWave(action) {
+  const opening = action === "open";
+  const dir = opening ? 1 : -1;
+  const opposite = [...paneWaves].reverse().find(wave =>
+    wave.action !== action && wave.strength > 0.02
+  );
+  /* Start on the drawer lip so the first tiles move immediately, then
+     only travel the column itself — not the whole color field. */
+  const lead = 1.15;
+  const source = opposite
+    ? opposite.x
+    : (opening ? drawerL - lead : drawerR - 1 + lead);
+  const speed = (drawerR - drawerL + lead * 2) / CFG.revealIn;
+
+  paneWaves.push({
+    id: ++paneWaveSeq,
+    action,
+    dir,
+    x: source,
+    velocity: speed,
+    speed,
+    age: 0,
+    strength: opening ? 1 : 0,
+    seed: Math.random() * 1000,
+    phase: Math.random() * Math.PI * 2
+  });
+  paneIntentOpen = opening;
+}
+
+function updatePaneWaves(dt) {
+  const lead = 1.15;
+  const finishAt = lead + 2;
+  for (let w = paneWaves.length - 1; w >= 0; w--) {
+    const wave = paneWaves[w];
+    wave.age += dt;
+    wave.x += wave.dir * wave.speed * dt;
+
+    const beyond = wave.dir > 0
+      ? Math.max(0, wave.x - (drawerR - 1 + lead))
+      : Math.max(0, (drawerL - lead) - wave.x);
+    const strengthTarget = beyond > 0 ? Math.max(0, 1 - beyond / finishAt) : 1;
+    const strengthRate = strengthTarget > wave.strength ? 8 : 4;
+    wave.strength += (strengthTarget - wave.strength) * (1 - Math.exp(-dt * strengthRate));
+
+    for (let j = 1; j < rows - 1; j++) {
+      for (let i = drawerL; i < drawerR; i++) {
+        const index = j * cols + i;
+        if (paneWaveEdge(wave, i, j) >= 0 && wave.id >= paneCellEvent[index]) {
+          paneCellEvent[index] = wave.id;
+          paneCellOpen[index] = wave.action === "open" ? 1 : 0;
+        }
+      }
+    }
+
+    if (beyond > finishAt && wave.strength < 0.02) paneWaves.splice(w, 1);
+  }
+}
+
+function paneWaveLight(i, j) {
+  let glow = 0;
+  const onField = i < drawerL || i >= drawerR;
+  for (const wave of paneWaves) {
+    const width = paneWaveGlowWidth(wave, j);
+    const e = paneWaveEdge(wave, i, j);
+    if (Math.abs(e) > width * 1.8) continue;
+    let amt = wipeGlow(e, width) * wave.strength;
+    if (onField && wave.action === "close") amt *= 0.28;
+    glow += amt;
+  }
+  return Math.min(1.25, glow);
+}
+
+function wipeGlow(e, width) {
+  const q = e / width;
+  return Math.exp(-q * q * 2.2) * 0.85;
+}
+
+function switchBandCenter(progress) {
+  const half = CFG.switchBandRows * 0.5;
+  const pad = half + CFG.switchFlowRows + CFG.switchFlexRows + 2;
+  return (1 - pad) + ((rows - 2 + pad) - (1 - pad)) * progress;
+}
+
+/* Signed distance inside the irregular ten-row switch banner. */
+function switchBandEdge(i, j, transition) {
+  const p = transition.vis;
+  const t = realT;
+  const seed = transition.seed;
+  const breath = 0.88 + 0.12 * Math.sin(t * 1.8 + transition.phase);
+  const center =
+    switchBandCenter(p) +
+    (fbm(i * 0.13 + seed, t * 0.2, 91.7 + seed) - 0.5) * 2 * CFG.switchFlowRows * breath +
+    Math.sin(i * 0.21 + t * 1.25 + transition.phase) * 1.05 +
+    Math.sin(i * 0.46 - t * 0.75 + seed) * 0.4;
+  const thicknessFlow =
+    (fbm(i * 0.14 + seed * 0.5, t * 0.17, 119.3 + seed) - 0.5) * 2 * CFG.switchFlexRows +
+    Math.sin(i * 0.27 - t + transition.phase) * 0.7;
+  const half = Math.max(
+    CFG.switchBandMinRows * 0.5,
+    CFG.switchBandRows * 0.5 * breath + thicknessFlow
+  );
+  const top = center - half;
+  const bottom = center + half;
+  return Math.min(j - top, bottom - j);
+}
+
+/* ---- Audio ---- */
+const VIDEO_ID = "9bgRJnBiG7c";
+let ytPlayer = null, ytReady = false, ytMuted = false, ytVol = 80;
+
+window.onYouTubeIframeAPIReady = function () {
+  ytPlayer = new YT.Player("yt", {
+    videoId: VIDEO_ID, width: 320, height: 180,
+    playerVars: {
+      autoplay: 1, controls: 0, playsinline: 1, disablekb: 1,
+      loop: 1, playlist: VIDEO_ID, origin: location.origin
+    },
+    events: {
+      onReady: e => {
+        ytReady = true;
+        e.target.setVolume(ytVol);
+        e.target.unMute();
+        e.target.playVideo();
+      },
+      onStateChange: e => { if (e.data === YT.PlayerState.ENDED) ytPlayer.playVideo(); }
+    }
+  });
+};
+(function loadYT() {
+  const s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(s);
+})();
+
+function kickAudio() {
+  if (!ytReady || !ytPlayer) return;
+  ytMuted = false;
+  ytPlayer.unMute();
+  ytPlayer.setVolume(ytVol);
+  ytPlayer.playVideo();
+}
+function toggleMute() {
+  if (!ytReady || !ytPlayer) { kickAudio(); return; }
+  ytMuted = !ytMuted;
+  ytMuted ? ytPlayer.mute() : ytPlayer.unMute();
+  ytPlayer.setVolume(ytVol);
+  ytPlayer.playVideo();
+}
+
+let actx = null, tmaster = null, tverb = null, lastTickAt = 0;
+function ensureTickAudio() {
+  if (actx) { if (actx.state === "suspended") actx.resume(); return; }
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  tmaster = actx.createGain(); tmaster.gain.value = 0.9;
+  const ir = actx.createBuffer(2, actx.sampleRate * 1.4, actx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = ir.getChannelData(c);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+  }
+  tverb = actx.createConvolver(); tverb.buffer = ir;
+  const wet = actx.createGain(); wet.gain.value = 0.25;
+  tverb.connect(wet); wet.connect(tmaster);
+  tmaster.connect(actx.destination);
+}
+const SCALE = [523.25, 587.33, 698.46, 783.99, 880, 1046.5, 1174.7, 1396.9];
+function tick(pitch, strong) {
+  if (!actx) return;
+  const now = performance.now();
+  if (now - lastTickAt < 45) return;
+  lastTickAt = now;
+  const t = actx.currentTime;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(strong ? 0.06 : 0.033, t + 0.004);
+  g.gain.setTargetAtTime(0, t + 0.012, 0.07);
+  const o = actx.createOscillator(); o.frequency.value = pitch;
+  const o2 = actx.createOscillator(); o2.frequency.value = pitch * 3.01;
+  const g2 = actx.createGain(); g2.gain.value = 0.14;
+  o.connect(g); o2.connect(g2); g2.connect(g);
+  g.connect(tmaster);
+  const send = actx.createGain(); send.gain.value = 0.35;
+  g.connect(send); send.connect(tverb);
+  o.start(t); o2.start(t); o.stop(t + 0.6); o2.stop(t + 0.6);
+}
+
+const live = { bass: 0, mid: 0, high: 0, total: 0 };
+let lastBeat = -10, beatArmed = true, hueSpin = 0;
+const ripples = [];
+
+function breathe(dt) {
+  /* Steady field — no periodic swell, beat ripples, or hue kicks. */
+  live.bass = 0.35;
+  live.mid = 0.35;
+  live.high = 0.35;
+  live.total = 0.35;
+  hueSpin += dt * CFG.react * 0.04;
+}
+
+const sparks = [];
+const WAKE_MAX = 28;
+const WAKE_GAP = 0.62;
+const WAKE_LIFE = 0.52;
+const WAKE_DELAY = 0.07;
+const wake = [];
+let dragging = false, lastTileKey = -1;
+
+function pointerOnField(cx, cy) {
+  if (!cols) return false;
+  const x = (cx - offX) / cell, y = (cy - offY) / cell;
+  const i = Math.floor(x), j = Math.floor(y);
+  const onActiveText =
+    drawerId &&
+    i >= drawerL && i < drawerR &&
+    j >= 1 && j < rows - 1 &&
+    paneCellOpen[j * cols + i] === 1;
+  if (onActiveText) return false;
+  return x >= homeRight && x < cols - 1 && y >= 1 && y < rows - 1;
+}
+function stampWake(cx, cy, force) {
+  if (!pointerOnField(cx, cy)) return;
+  const x = (cx - offX) / cell, y = (cy - offY) / cell;
+  const last = wake[wake.length - 1];
+  if (!force && last && Math.hypot(x - last.x, y - last.y) < WAKE_GAP && realT - last.t < 0.035) return;
+  wake.push({ x, y, t: realT });
+  if (wake.length > WAKE_MAX) wake.shift();
+}
+function mouseSpark(cx, cy, strong, force) {
+  if (!pointerOnField(cx, cy)) return;
+  ensureTickAudio();
+  const x = (cx - offX) / cell, y = (cy - offY) / cell;
+  const key = ((x * 2) | 0) + ((y * 2) | 0) * 4096;
+  if (key === lastTileKey && !force) return;
+  lastTileKey = key;
+  sparks.push({ x, y, t: 0, r: strong ? 12 : 6.5, a: strong ? 0.85 : 0.38 });
+  if (sparks.length > 60) sparks.shift();
+  const step = Math.max(0, Math.min(SCALE.length - 1, ((1 - y / rows) * SCALE.length) | 0));
+  tick(SCALE[step] * (strong ? 0.5 : 1), strong);
+}
+function onDown(e) {
+  if (deckEl.contains(e.target)) return;
+  ensureTickAudio(); kickAudio();
+  dragging = true;
+  stampWake(e.clientX, e.clientY, true);
+  mouseSpark(e.clientX, e.clientY, true, true);
+}
+function onMove(e) {
+  stampWake(e.clientX, e.clientY, false);
+  mouseSpark(e.clientX, e.clientY, dragging, false);
+}
+document.addEventListener("pointerdown", onDown, { passive: true });
+document.addEventListener("pointerup", () => { dragging = false; }, { passive: true });
+document.addEventListener("pointermove", onMove, { passive: true });
+document.addEventListener("mousemove", onMove, { passive: true });
+
+/* ---- Layout ---- */
+let W, H, tile, gap, rad, cell, cols, rows, offX, offY, maxRevealD;
+let si = 0, sj = 0;
+
+function setGridVars() {
+  document.documentElement.style.setProperty("--tile", tile + "px");
+  document.documentElement.style.setProperty("--gap", gap + "px");
+  document.documentElement.style.setProperty("--cell", cell + "px");
+}
+
+function rebuildStrip() {
+  paneEls = PANE_ORDER.filter(id => opened.has(id)).map(id => paneById[id]);
+  for (let i = 0; i < paneEls.length; i++) stripEl.appendChild(paneEls[i]);
+  for (let i = 0; i < PANE_ORDER.length; i++) {
+    const id = PANE_ORDER[i];
+    if (!opened.has(id)) holdEl.appendChild(paneById[id]);
+  }
+}
+
+/* Panes open on visit and never close. Inserting to the left keeps the
+   focused pane visually still by shifting strip-x. */
+function ensureOpen(id) {
+  if (!paneById[id] || opened.has(id)) return;
+  const focusId = paneEls[targetPane] && paneEls[targetPane].id;
+  const focusOldIdx = focusId ? paneEls.findIndex(p => p.id === focusId) : -1;
+  opened.add(id);
+  rebuildStrip();
+  if (focusId && focusOldIdx >= 0) {
+    const focusNewIdx = paneEls.findIndex(p => p.id === focusId);
+    if (focusNewIdx >= 0 && focusNewIdx !== focusOldIdx) {
+      const d = (focusNewIdx - focusOldIdx) * paneStride;
+      stripX += d;
+      stripTarget += d;
+      stripFrom += d;
+      document.documentElement.style.setProperty("--strip-x", stripX + "px");
+    }
+  }
+}
+
+function goPane(to) {
+  let id;
+  if (typeof to === "number") {
+    if (!paneEls[to]) return;
+    id = paneEls[to].id;
+  } else {
+    id = to;
+  }
+  if (!paneById[id]) return;
+
+  ensureOpen(id);
+  const idx = paneEls.findIndex(p => p.id === id);
+  if (idx < 0) return;
+
+  targetPane = idx;
+  const next = targetPane * paneStride;
+  if (Math.abs(next - stripX) > 0.5) {
+    stripFrom = stripX;
+    stripTarget = next;
+    stripAnimT = 0;
+  } else {
+    stripX = stripTarget = next;
+    stripAnimT = 1;
+    document.documentElement.style.setProperty("--strip-x", stripX + "px");
+  }
+}
+
+function bootPanes() {
+  opened.clear();
+  opened.add("about");
+  rebuildStrip();
+  targetPane = 0;
+  stripX = stripTarget = stripFrom = 0;
+  stripAnimT = 1;
+}
+
+function mountDrawer(id) {
+  if (drawerId && drawerId !== id && paneById[drawerId]) holdEl.appendChild(paneById[drawerId]);
+  drawerId = id;
+  paneById[id].style.clipPath = "";
+  paneById[id].style.pointerEvents = "";
+  drawerBodyEl.appendChild(paneById[id]);
+  drawerEl.classList.add("open");
+}
+
+function disposeDrawerLayer(layer, keep) {
+  if (layer === keep) return;
+  if (layer.id && paneById[layer.id] === layer) {
+    layer.style.clipPath = "";
+    layer.style.pointerEvents = "";
+    holdEl.appendChild(layer);
+  } else {
+    layer.remove();
+  }
+}
+
+function settleDrawerLayers() {
+  if (!drawerId || !paneById[drawerId]) return;
+  const canonical = paneById[drawerId];
+  Array.from(drawerBodyEl.children).forEach(layer => disposeDrawerLayer(layer, canonical));
+  canonical.style.clipPath = "";
+  canonical.style.pointerEvents = "";
+  canonical.scrollTop = 0;
+  drawerBodyEl.appendChild(canonical);
+}
+
+function finishDrawerSwitch(transition) {
+  const idx = drawerSwitches.indexOf(transition);
+  if (idx < 0) return;
+  transition.layer.style.clipPath = "";
+
+  /* Once this layer reaches the bottom it fully covers every older layer,
+     so those can be retired while newer ripples keep running above it. */
+  let older = transition.layer.previousElementSibling;
+  while (older) {
+    const previous = older.previousElementSibling;
+    disposeDrawerLayer(older);
+    older = previous;
+  }
+  drawerSwitches.splice(idx, 1);
+
+  if (drawerSwitches.length === 0) {
+    settleDrawerLayers();
+    for (let k = 0; k < cache.length; k++) cache[k] = undefined;
+  }
+}
+
+function updateDrawerSwitchClip(transition) {
+  /* The straight DOM seam stays hidden in the much wider tile banner. */
+  const cutRows = switchBandCenter(transition.vis) - 1;
+  const cutPx = Math.max(0, Math.min(paneH, cutRows * cell));
+  transition.layer.style.clipPath = "inset(0 0 " + Math.max(0, paneH - cutPx) + "px 0)";
+}
+
+function startDrawerSwitch(id) {
+  const sourcePane = paneById[id];
+  if (!sourcePane) return;
+
+  /* A snapshot layer lets each quick selection keep sweeping independently,
+     including when the user returns to a page already lower in the stack. */
+  const layer = sourcePane.cloneNode(true);
+  layer.removeAttribute("id");
+  layer.dataset.pageId = id;
+  layer.scrollTop = 0;
+  layer.style.clipPath = "inset(0 0 100% 0)";
+  layer.style.pointerEvents = "none";
+  drawerBodyEl.querySelectorAll(":scope > .pane").forEach(pane => {
+    pane.style.pointerEvents = "none";
+  });
+  drawerBodyEl.appendChild(layer);
+
+  const transition = {
+    to: id,
+    layer,
+    p: 0,
+    vis: 0,
+    seed: Math.random() * 1000,
+    phase: Math.random() * Math.PI * 2
+  };
+  drawerSwitches.push(transition);
+  drawerId = id;
+  drawerEl.classList.add("open");
+  layoutDeck();
+}
+
+function openDrawer(id) {
+  if (!paneById[id] || id === "about") {
+    closeDrawer();
+    return;
+  }
+  if (id === drawerId) {
+    if (!paneIntentOpen) emitPaneWave("open");
+    drawerEl.classList.add("open");
+    layoutDeck();
+    return;
+  }
+  /* Keep both pages stacked while one flowing banner replaces the old
+     text with the new text row by row. */
+  if (drawerId) {
+    if (!paneIntentOpen) emitPaneWave("open");
+    startDrawerSwitch(id);
+    return;
+  }
+  mountDrawer(id);
+  emitPaneWave("open");
+  layoutDeck();
+}
+
+function closeDrawer() {
+  if (!drawerId || !paneIntentOpen) return;
+  emitPaneWave("close");
+  applyWork(null, true, CFG.revealIn);
+}
+
+function finishClose() {
+  if (drawerId && paneById[drawerId]) holdEl.appendChild(paneById[drawerId]);
+  drawerId = null;
+  paneIntentOpen = false;
+  drawerEl.classList.remove("open");
+  layoutDeck();
+}
+
+function layoutDeck() {
+  /* One unlit tile around the board. Home bar is a thin column;
+     an open drawer takes a second column of the same width. */
+  const innerCols = Math.max(1, cols - 2);
+  const innerRows = Math.max(1, rows - 2);
+  const preferredSidebarCols = Math.max(10, Math.round(innerCols / 4));
+  const sidebarCols = Math.max(1, Math.min(preferredSidebarCols, Math.floor(innerCols / 2)));
+  drawerCols = sidebarCols;
+  homeRight = 1 + sidebarCols;
+  drawerL = homeRight;
+  drawerR = homeRight + sidebarCols;
+  colorLeft = drawerId ? drawerR : homeRight;
+
+  sidePad = offX + cell;
+  paneTop = offY + cell;
+  paneW = sidebarCols * cell - gap;
+  paneH = innerRows * cell - gap;
+  paneGap = 0;
+  paneStride = paneW;
+
+  const root = document.documentElement.style;
+  root.setProperty("--pane-w", paneW + "px");
+  root.setProperty("--pane-h", paneH + "px");
+  root.setProperty("--pane-gap", "0px");
+  root.setProperty("--pane-top", paneTop + "px");
+  root.setProperty("--side-pad", sidePad + "px");
+
+  stripTarget = targetPane * paneStride;
+  stripX = stripFrom = stripTarget;
+  stripAnimT = 1;
+  root.setProperty("--strip-x", stripX + "px");
+  drawerSwitches.forEach(updateDrawerSwitchClip);
+}
+
+function setup() {
+  W = stage.clientWidth; H = stage.clientHeight;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  tile = CFG.tile; gap = CFG.gap; rad = Math.min(CFG.radius, tile / 2); cell = tile + gap;
+  cols = Math.floor((W + gap) / cell);
+  rows = Math.floor((H + gap) / cell);
+  offX = (W - (cols * cell - gap)) / 2;
+  offY = (H - (rows * cell - gap)) / 2;
+  wall.width = W * dpr; wall.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  setGridVars();
+  layoutDeck();
+  ensurePaneCells();
+  si = (colorLeft + cols - 2) * 0.5;
+  sj = (rows - 1) * 0.5;
+  maxRevealD = Math.max(
+    Math.hypot(colorLeft - si, 1 - sj),
+    Math.hypot(cols - 2 - si, 1 - sj),
+    Math.hypot(colorLeft - si, rows - 2 - sj),
+    Math.hypot(cols - 2 - si, rows - 2 - sj)
+  ) + CFG.jagAmp * 0.5 + CFG.revealSoft;
+}
+
+let openT = 0, sweepDone = false;
+
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const motion = reducedMotion ? 0 : 1;
+let raf = 0, last = performance.now(), realT = 0, wtC = 0, wtW = 0;
+const sm = u => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
+const clamp01 = u => u <= 0 ? 0 : u >= 1 ? 1 : u;
+
+/* Trapezoidal velocity: brief acceleration, linear travel, brief stop.
+   Unlike a quadratic ease, it does not crawl across the final tiles. */
+let favLink = document.querySelector('link[rel="icon"]');
+const favCanvas = document.createElement("canvas");
+favCanvas.width = 64;
+favCanvas.height = 64;
+const favCtx = favCanvas.getContext("2d");
+let cornerFill = "#ff9f1c";
+let favShown = "";
+let favAt = -1;
+let favUrl = "";
+const FAV_GIF = "favicon.gif";
+
+function fillSquircle(ctx, x, y, size) {
+  const n = 3.6;
+  const r = size * 0.5;
+  const cx = x + r, cy = y + r;
+  ctx.beginPath();
+  for (let k = 0; k <= 64; k++) {
+    const t = (k / 64) * Math.PI * 2;
+    const ct = Math.cos(t), st = Math.sin(t);
+    const px = cx + r * Math.sign(ct) * Math.pow(Math.abs(ct), 2 / n);
+    const py = cy + r * Math.sign(st) * Math.pow(Math.abs(st), 2 / n);
+    if (k === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function setFaviconHref(href, type) {
+  const next = document.createElement("link");
+  next.rel = "icon";
+  next.type = type;
+  next.sizes = "64x64";
+  next.href = href;
+  favLink.replaceWith(next);
+  favLink = next;
+}
+
+function showFallbackFavicon() {
+  favShown = "";
+  if (favUrl) { URL.revokeObjectURL(favUrl); favUrl = ""; }
+  setFaviconHref(FAV_GIF, "image/gif");
+}
+
+function updateFavicon(fill) {
+  if (!favLink || !fill || document.hidden) return;
+  if (fill === favShown || realT - favAt < 0.08) return;
+  favShown = fill;
+  favAt = realT;
+  favCtx.fillStyle = "#ffffff";
+  favCtx.fillRect(0, 0, 64, 64);
+  favCtx.fillStyle = fill;
+  fillSquircle(favCtx, 2, 2, 60);
+  favCanvas.toBlob(blob => {
+    if (!blob || document.hidden) return;
+    if (favUrl) URL.revokeObjectURL(favUrl);
+    favUrl = URL.createObjectURL(blob);
+    setFaviconHref(favUrl, "image/png");
+  }, "image/png");
+}
+
+function paneGlide(t) {
+  const a = CFG.paneAccel;
+  const v = 1 / (1 - a);
+  if (t < a) return 0.5 * (v / a) * t * t;
+  if (t <= 1 - a) return 0.5 * a * v + (t - a) * v;
+  const q = 1 - t;
+  return 1 - 0.5 * (v / a) * q * q;
+}
+
+function frame(now) {
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now; realT += dt;
+
+  if (!reducedMotion) breathe(dt);
+  openT += dt;
+
+  updatePaneWaves(reducedMotion ? Math.max(dt, 1) : dt);
+  colorLeft = drawerId ? drawerR : homeRight;
+
+  if (drawerSwitches.length) {
+    const dur = reducedMotion ? 0.01 : CFG.switchIn;
+    const completed = [];
+    for (const transition of drawerSwitches) {
+      transition.p = Math.min(1, transition.p + dt / dur);
+      transition.vis = reducedMotion ? transition.p : paneGlide(transition.p);
+      updateDrawerSwitchClip(transition);
+      if (transition.p >= 1) completed.push(transition);
+    }
+    completed.forEach(finishDrawerSwitch);
+  }
+
+  if (!paneIntentOpen && drawerId && paneCellsMatch(false) && drawerSwitches.length === 0) {
+    finishClose();
+  }
+
+  while (wake.length && realT - wake[0].t > WAKE_LIFE) wake.shift();
+  if (lutT < 1) {
+    lutT = Math.min(1, lutT + dt / (reducedMotion ? 0.01 : lutDur));
+    if (lutT === 1) for (let k = 0; k < cache.length; k++) cache[k] = undefined;
+  }
+  const seedDelta = workSeedTo - workSeed;
+  const seedStep = (reducedMotion ? 1000 : 1.8) * dt;
+  if (Math.abs(seedDelta) <= seedStep) workSeed = workSeedTo;
+  else workSeed += Math.sign(seedDelta) * seedStep;
+
+  if (stripAnimT < 1) {
+    const dur = reducedMotion ? 0.12 : CFG.paneAnimDur;
+    stripAnimT = Math.min(1, stripAnimT + dt / dur);
+    const u = paneGlide(stripAnimT);
+    stripX = stripFrom + (stripTarget - stripFrom) * u;
+    document.documentElement.style.setProperty("--strip-x", stripX + "px");
+  } else if (stripX !== stripTarget) {
+    stripX = stripTarget;
+    document.documentElement.style.setProperty("--strip-x", stripX + "px");
+  }
+
+  const R = CFG.react * motion;
+  const swell = 1 + CFG.swellSpeed * R * live.total * live.total;
+
+  wtC += dt * motion * CFG.speed * swell;
+  wtW += dt * motion * CFG.speed * swell;
+
+  const revealP = reducedMotion ? 1 : sm(openT / CFG.revealIn);
+  if (revealP >= 1) sweepDone = true;
+
+  const th = CFG.threshold;
+  const floor = CFG.floor;
+  const env = 0.75 * live.bass + 0.25 * live.mid;
+  const glowNow = 1 - Math.min(0.6, CFG.dimQuiet * R) * (1 - env);
+
+  for (let r = ripples.length - 1; r >= 0; r--) { ripples[r].t += dt; if (ripples[r].t > CFG.rippleLife * 3) ripples.splice(r, 1); }
+  for (let k = sparks.length - 1; k >= 0; k--) { sparks[k].t += dt; if (sparks[k].t > 1.5) sparks.splice(k, 1); }
+
+  ctx.fillStyle = "#140c08";
+  ctx.fillRect(0, 0, W, H);
+  if (drawerId) {
+    for (let j = 1; j < rows - 1; j++) {
+      const py = offY + j * cell;
+      for (let i = drawerL; i < drawerR; i++) {
+        if (paneCellOpen[j * cols + i] === 1) {
+          ctx.clearRect(offX + i * cell, py, cell, cell);
+        }
+      }
+    }
+  }
+
+  for (let j = 0; j < rows; j++) {
+    const py = offY + j * cell;
+    const onBorderY = j === 0 || j === rows - 1;
+    for (let i = 0; i < cols; i++) {
+      const onBorder = onBorderY || i === 0 || i === cols - 1;
+      const onHome = !onBorder && i < homeRight;
+      if (onHome) continue;
+      const inDrawer = !onBorder && i >= drawerL && i < drawerR;
+      const drawerCellOpen =
+        inDrawer &&
+        drawerId &&
+        paneCellOpen[j * cols + i] === 1;
+
+      if (onBorder) {
+        ctx.fillStyle = "#1e140e";
+        ctx.beginPath();
+        ctx.roundRect(offX + i * cell, py, tile, tile, rad);
+        ctx.fill();
+        continue;
+      }
+
+      let b = fbm(i * CFG.waveScale + wtW * CFG.waveDriftX,
+                    j * CFG.waveScale + wtW * CFG.waveDriftY,
+                    wtW * CFG.waveEvolve + 47.1 + workSeed);
+        b = (b - th) / (1 - th);
+        b = b < 0 ? 0 : Math.pow(b, CFG.gamma);
+        b = floor + (1 - floor) * (b > 1 ? 1 : b);
+
+      let s = fbm(i * CFG.colorScale + wtC * CFG.colorDrift,
+                    j * CFG.colorScale + wtC * CFG.colorDriftY,
+                    wtC * CFG.colorEvolve) + wtC * CFG.hueCycle + hueSpin;
+
+        for (let r = 0; r < ripples.length; r++) {
+          const rp = ripples[r];
+          const e = Math.hypot(i - rp.x, j - rp.y) - rp.t * CFG.rippleSpeed;
+          if (e > 7 || e < -7) continue;
+          const g = Math.exp(-e * e / 12) * Math.exp(-rp.t / CFG.rippleLife) * R;
+          b += g * CFG.rippleGlow; s += g * 0.13;
+        }
+        b *= glowNow;
+
+        if (wake.length) {
+          let g = 0;
+          const px = i + 0.5, py = j + 0.5;
+          for (let w = 0; w < wake.length; w++) {
+            const wp = wake[w];
+            const delayed = realT - wp.t - WAKE_DELAY;
+            if (delayed < 0) continue;
+            const life = 1 - delayed / (WAKE_LIFE - WAKE_DELAY);
+            if (life <= 0) continue;
+            const fade = life * life;
+            const dx = px - wp.x, dy = py - wp.y;
+            const d2 = dx * dx + dy * dy;
+            const spread = 0.42 + delayed * 2.1;
+            g += fade * 0.22 * Math.exp(-d2 / (spread * spread * 0.28));
+            const ring = Math.sqrt(d2) - delayed * 6.5;
+            g += fade * 0.28 * Math.exp(-(ring * ring) / 0.7);
+          }
+          if (g > 0.004) { b += g; s += g * 0.09; }
+        }
+
+        for (let k = 0; k < sparks.length; k++) {
+          const sp = sparks[k]; const ax = i - sp.x, ay = j - sp.y;
+          if (ax > 8 || ax < -8 || ay > 8 || ay < -8) continue;
+          const g = Math.exp(-(ax * ax + ay * ay) / sp.r) * Math.exp(-sp.t / 0.55) * sp.a;
+          b += g; s += g * 0.1;
+        }
+
+        const paneGlow = paneWaveLight(i, j);
+        if (!inDrawer && paneGlow > 0.002) {
+          b = Math.min(1, b + paneGlow);
+          s += paneGlow * 0.045;
+        }
+
+        if (inDrawer) {
+          let cover = 0;
+          let edgeGlow = 0;
+          if (drawerSwitches.length) {
+            for (const transition of drawerSwitches) {
+              const e = switchBandEdge(i, j, transition);
+              cover = Math.max(cover, sm(clamp01(e + 1)));
+              edgeGlow = Math.max(edgeGlow, wipeGlow(Math.abs(e), 2.2));
+            }
+          }
+
+          if (cover > 0.01) {
+            /* Keep the banner opaque between tiles so text cannot show
+               through the grid gaps while the two pages are swapping. */
+            ctx.fillStyle = "#140c08";
+            ctx.fillRect(offX + i * cell, py, cell, cell);
+            b *= cover;
+            b = Math.min(1, b + edgeGlow);
+          } else if (drawerCellOpen) {
+            if (paneGlow <= 0.025) continue;
+            /* A passing pane wave can temporarily crest over revealed text,
+               but its opacity and position can only evolve with time. */
+            ctx.fillStyle = "#140c08";
+            ctx.fillRect(offX + i * cell, py, cell, cell);
+            b = Math.min(1, b + paneGlow);
+          } else {
+            b = Math.min(1, b + paneGlow);
+            s += paneGlow * 0.045;
+          }
+        }
+
+        if (!sweepDone) {
+          const e = splashEdge(i, j, si, sj, revealP * maxRevealD);
+          const m = splashMask(e);
+          b = b * m + splashRing(e);
+          if (b < 0.02) continue;
+        }
+
+      if (b > 1) b = 1;
+      s -= Math.floor(s);
+
+      const idx = (s * 512) | 0;
+      const bq = (b * 63) | 0;
+      const key = (idx << 6) | bq;
+      let fill = lutT >= 1 ? cache[key] : null;
+      if (!fill) {
+        const m2 = (bq + 0.5) / 64;
+        const u = sm(lutT), v = 1 - u;
+        const o = idx * 3;
+        fill = "rgb(" +
+          ((lutFrom[o] * v + lutTo[o] * u) * m2 | 0) + "," +
+          ((lutFrom[o + 1] * v + lutTo[o + 1] * u) * m2 | 0) + "," +
+          ((lutFrom[o + 2] * v + lutTo[o + 2] * u) * m2 | 0) + ")";
+        if (lutT >= 1) cache[key] = fill;
+      }
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      ctx.roundRect(offX + i * cell, py, tile, tile, rad);
+      ctx.fill();
+      if (i === cols - 2 && j === rows - 2) cornerFill = fill;
+    }
+  }
+
+  updateFavicon(cornerFill);
+  raf = requestAnimationFrame(frame);
+}
+
+function onContentClick(e) {
+  const a = e.target.closest("a[data-go], a[data-work]");
+  if (!a) return;
+  e.preventDefault();
+  const work = a.getAttribute("data-work");
+  const go = a.getAttribute("data-go");
+  if (work && work === workId && workLocked) {
+    closeDrawer();
+    return;
+  }
+  if (work) applyWork(work, true);
+  if (go === "about") closeDrawer();
+  else if (go) openDrawer(go);
+}
+deckEl.addEventListener("click", onContentClick);
+drawerEl.addEventListener("click", onContentClick);
+deckEl.addEventListener("pointerover", e => {
+  const a = e.target.closest("a[data-work]");
+  if (!a || workLocked) return;
+  applyWork(a.getAttribute("data-work"), false);
+});
+deckEl.addEventListener("pointerout", e => {
+  const a = e.target.closest("a[data-work]");
+  if (!a || workLocked) return;
+  if (e.relatedTarget && a.contains(e.relatedTarget)) return;
+  applyWork(null, false);
+});
+
+deckEl.addEventListener("wheel", e => {
+  /* Vertical scroll inside a tall pane — only jack when mostly horizontal
+     or when the pane can't scroll further in that direction. */
+  const pane = e.target.closest(".pane");
+  const mostlyX = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+  if (!mostlyX && pane) {
+    const dy = e.deltaY;
+    const top = pane.scrollTop;
+    const max = pane.scrollHeight - pane.clientHeight;
+    const atEdge = (dy < 0 && top <= 0) || (dy > 0 && top >= max - 1);
+    if (!atEdge) return;
+  }
+  if (mostlyX) e.preventDefault();
+}, { passive: false });
+
+addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey) return;
+  if (e.key === "Escape" && drawerId) closeDrawer();
+  else if (e.key === "Escape" && workLocked) applyWork(null, true);
+  else if (e.key === "m") { ensureTickAudio(); toggleMute(); }
+});
+
+addEventListener("resize", setup);
+document.addEventListener("visibilitychange", () => {
+  cancelAnimationFrame(raf);
+  if (document.hidden) {
+    showFallbackFavicon();
+    return;
+  }
+  last = performance.now();
+  raf = requestAnimationFrame(frame);
+});
+
+bootPanes();
+setup();
+if (location.hash || location.search) history.replaceState(null, "", location.pathname);
+deckEl.classList.add("show");
+deckEl.setAttribute("aria-hidden", "false");
+document.body.classList.add("blog-open");
+raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
