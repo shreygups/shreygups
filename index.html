@@ -18,17 +18,17 @@
 <meta property="og:description" content="Shrey Gupta">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shreygups.com/">
-<meta property="og:image" content="https://shreygups.com/card4.gif">
-<meta property="og:image:secure_url" content="https://shreygups.com/card4.gif">
-<meta property="og:image:type" content="image/gif">
+<meta property="og:image" content="https://shreygups.com/wide.jpg">
+<meta property="og:image:secure_url" content="https://shreygups.com/wide.jpg">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Shrey Gupta">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Shrey Gupta">
 <meta name="twitter:description" content="Shrey Gupta">
-<meta name="twitter:image" content="https://shreygups.com/card4.gif">
-<link rel="image_src" href="https://shreygups.com/card4.gif">
+<meta name="twitter:image" content="https://shreygups.com/wide.jpg">
+<link rel="image_src" href="https://shreygups.com/wide.jpg">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="favicon.gif" type="image/gif" sizes="64x64">
 <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
@@ -246,7 +246,8 @@
     align-items: flex-start;
     gap: 0;
   }
-  .work-list a {
+  .work-list a,
+  .work-list span {
     display: inline-flex;
     align-items: center;
     gap: 0.35em;
@@ -315,9 +316,11 @@
       <a href="#nasa" data-work="nasa" data-go="nasa">NASA</a>
       <a href="#fundsy" data-work="fundsy" data-go="fundsy">Fundsy</a>
       <a href="#irvine" data-work="irvine" data-go="irvine">Irvine Lights</a>
-      <a href="#phinances" data-work="phinances" data-go="phinances">Phinances</a>
-      <a href="#yappin" data-work="yappin" data-go="yappin">Yappin</a>
       <a href="#capital" data-work="capital" data-go="capital">Capital One</a>
+    </p>
+    <p class="work-list">
+      <a href="#projects" data-go="projects">Projects</a>
+      <a href="#thoughts" data-go="thoughts">Thoughts</a>
     </p>
     <p class="social-links">
       <a href="https://twitter.com/shreygups" target="_blank" rel="noopener noreferrer">Twitter</a>
@@ -338,14 +341,6 @@
     <p class="name">Fundsy</p>
     <p>wip</p>
   </article>
-  <article class="pane editorial" id="phinances">
-    <p class="name">Phinances</p>
-    <p>wip</p>
-  </article>
-  <article class="pane editorial" id="yappin">
-    <p class="name">Yappin</p>
-    <p>wip</p>
-  </article>
   <article class="pane editorial" id="nasa">
     <p class="name">NASA</p>
     <p>wip</p>
@@ -356,6 +351,19 @@
   </article>
   <article class="pane editorial" id="capital">
     <p class="name">Capital One</p>
+    <p>wip</p>
+  </article>
+  <article class="pane editorial" id="projects">
+    <p class="name">Projects</p>
+    <p class="work-list">
+      <span>Yappin</span>
+      <span>Phinances</span>
+      <span>Zoom Bookmarks</span>
+      <span>wip</span>
+    </p>
+  </article>
+  <article class="pane editorial" id="thoughts">
+    <p class="name">Thoughts</p>
     <p>wip</p>
   </article>
 </div>
@@ -426,7 +434,7 @@ const drawerEl = document.getElementById("drawer");
 const drawerBodyEl = document.getElementById("drawer-body");
 let drawerId = null;
 const drawerSwitches = [];
-const PANE_ORDER = ["about", "olive", "campsite", "nasa", "fundsy", "irvine", "phinances", "yappin", "capital"];
+const PANE_ORDER = ["about", "olive", "campsite", "nasa", "fundsy", "irvine", "capital", "projects", "thoughts"];
 const paneById = Object.fromEntries(
   Array.from(holdEl.querySelectorAll(".pane")).map(p => [p.id, p])
 );
@@ -476,14 +484,6 @@ const WORK = {
     seed: 31,
     palette: ["#3d9a4a", "#7bbf4a", "#d4e05a", "#ffe566", "#8fd17a", "#c6e86a"]
   },
-  phinances: {
-    seed: 41,
-    palette: ["#c9a227", "#e6c34a", "#ffe566", "#fff1a8", "#d4a017", "#f0d060"]
-  },
-  yappin: {
-    seed: 53,
-    palette: ["#ff9f1c", "#ffc933", "#ffe566", "#ff6b1a", "#ffd60a", "#ffb703"]
-  },
   nasa: {
     seed: 89,
     palette: ["#4a8fd4", "#7eb6e8", "#c9d8f0", "#ffe566", "#2d6cb5", "#f0e6a8"]
@@ -501,10 +501,12 @@ const WORK = {
 let workId = null, workLocked = false, workSeed = 0, workSeedTo = 0;
 
 function syncWorkLinks() {
-  deckEl.querySelectorAll("a[data-work]").forEach(a => {
+  deckEl.querySelectorAll("a[data-work], a[data-go]").forEach(a => {
     const label = a.dataset.label || a.textContent.replace(/^\[|\]$/g, "");
     a.dataset.label = label;
-    const active = workLocked && a.getAttribute("data-work") === workId;
+    const work = a.getAttribute("data-work");
+    const go = a.getAttribute("data-go");
+    const active = (work && workLocked && work === workId) || (!work && go && go === drawerId);
     a.replaceChildren(document.createTextNode(label));
     if (active) {
       const icon = document.createElement("span");
@@ -1079,6 +1081,7 @@ function finishClose() {
   paneIntentOpen = false;
   drawerEl.classList.remove("open");
   layoutDeck();
+  syncWorkLinks();
 }
 
 function layoutDeck() {
@@ -1441,13 +1444,15 @@ function onContentClick(e) {
   e.preventDefault();
   const work = a.getAttribute("data-work");
   const go = a.getAttribute("data-go");
-  if (work && work === workId && workLocked) {
+  if ((work && work === workId && workLocked) || (go && go === drawerId && paneIntentOpen)) {
     closeDrawer();
     return;
   }
   if (work) applyWork(work, true);
+  else if (go && go !== "about") applyWork(null, true);
   if (go === "about") closeDrawer();
   else if (go) openDrawer(go);
+  syncWorkLinks();
 }
 deckEl.addEventListener("click", onContentClick);
 drawerEl.addEventListener("click", onContentClick);

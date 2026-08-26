@@ -32,6 +32,9 @@
 /card4.gif
   Cache-Control: public, max-age=86400
 
+/wide.jpg
+  Cache-Control: public, max-age=86400
+
 /favicon.gif
   Cache-Control: public, max-age=86400
 
