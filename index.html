@@ -29,27 +29,27 @@
 <meta name="twitter:description" content="Shrey Gupta">
 <meta name="twitter:image" content="https://shreygups.com/wide.jpg">
 <link rel="image_src" href="https://shreygups.com/wide.jpg">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="favicon.gif" type="image/gif" sizes="64x64">
-<link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/favicon.gif" type="image/gif" sizes="64x64">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
 <style>
   @font-face {
     font-family: americanGrotesk;
-    src: url("fonts/american-grotesk-regular.woff2") format("woff2");
+    src: url("/fonts/american-grotesk-regular.woff2") format("woff2");
     font-display: swap;
     font-weight: 400;
     font-style: normal;
   }
   @font-face {
     font-family: americanGrotesk;
-    src: url("fonts/american-grotesk-italic.woff2") format("woff2");
+    src: url("/fonts/american-grotesk-italic.woff2") format("woff2");
     font-display: swap;
     font-weight: 400;
     font-style: italic;
   }
   @font-face {
     font-family: americanGrotesk;
-    src: url("fonts/american-grotesk-medium.woff2") format("woff2");
+    src: url("/fonts/american-grotesk-medium.woff2") format("woff2");
     font-display: swap;
     font-weight: 500;
     font-style: normal;
@@ -327,16 +327,16 @@
     <p class="name">Shrey Gupta</p>
     <p>I'm an engineer based in San Francisco building fun &amp; thoughtful AI products.</p>
     <p class="work-list">
-      <a href="#olive" data-work="olive" data-go="olive">Olive</a>
-      <a href="#campsite" data-work="campsite" data-go="campsite">Campsite</a>
-      <a href="#nasa" data-work="nasa" data-go="nasa">NASA</a>
-      <a href="#fundsy" data-work="fundsy" data-go="fundsy">Fundsy</a>
-      <a href="#irvine" data-work="irvine" data-go="irvine">Irvine Lights</a>
-      <a href="#capital" data-work="capital" data-go="capital">Capital One</a>
+      <a href="/work/olive" data-work="olive" data-go="olive">Olive</a>
+      <a href="/work/campsite" data-work="campsite" data-go="campsite">Campsite</a>
+      <a href="/work/nasa" data-work="nasa" data-go="nasa">NASA</a>
+      <a href="/work/fundsy" data-work="fundsy" data-go="fundsy">Fundsy</a>
+      <a href="/work/irvine-lights" data-work="irvine" data-go="irvine">Irvine Lights</a>
+      <a href="/work/capital-one" data-work="capital" data-go="capital">Capital One</a>
     </p>
     <p class="work-list">
-      <a href="#projects" data-go="projects">Projects</a>
-      <a href="#thoughts" data-go="thoughts">Thoughts</a>
+      <a href="/projects" data-go="projects">Projects</a>
+      <a href="/thoughts" data-go="thoughts">Thoughts</a>
     </p>
     <p class="social-links">
       <a href="https://twitter.com/shreygups" target="_blank" rel="noopener noreferrer">Twitter</a>
@@ -391,13 +391,13 @@
   <article class="pane editorial" id="projects">
     <p class="name">Projects</p>
     <nav class="work-list" aria-label="Projects">
-      <a href="#project-yappin" data-detail="project-yappin" aria-controls="detail" aria-expanded="false">Yappin</a>
-      <a href="#project-phinances" data-detail="project-phinances" aria-controls="detail" aria-expanded="false">Phinances</a>
-      <a href="#project-parking" data-detail="project-parking" aria-controls="detail" aria-expanded="false">Davis Parking</a>
-      <a href="#project-aggieworks" data-detail="project-aggieworks" aria-controls="detail" aria-expanded="false">AggieWorks</a>
-      <a href="#project-katamundi" data-detail="project-katamundi" aria-controls="detail" aria-expanded="false">Katamundi</a>
-      <a href="#project-home-networking" data-detail="project-home-networking" aria-controls="detail" aria-expanded="false">Home Networking</a>
-      <a href="#project-zoom-bookmarks" data-detail="project-zoom-bookmarks" aria-controls="detail" aria-expanded="false">Zoom Bookmarks</a>
+      <a href="/projects/yappin" data-detail="project-yappin" aria-controls="detail" aria-expanded="false">Yappin</a>
+      <a href="/projects/phinances" data-detail="project-phinances" aria-controls="detail" aria-expanded="false">Phinances</a>
+      <a href="/projects/davis-parking" data-detail="project-parking" aria-controls="detail" aria-expanded="false">Davis Parking</a>
+      <a href="/projects/aggieworks" data-detail="project-aggieworks" aria-controls="detail" aria-expanded="false">AggieWorks</a>
+      <a href="/projects/katamundi" data-detail="project-katamundi" aria-controls="detail" aria-expanded="false">Katamundi</a>
+      <a href="/projects/home-networking" data-detail="project-home-networking" aria-controls="detail" aria-expanded="false">Home Networking</a>
+      <a href="/projects/zoom-bookmarks" data-detail="project-zoom-bookmarks" aria-controls="detail" aria-expanded="false">Zoom Bookmarks</a>
     </nav>
   </article>
   <article class="pane editorial" id="thoughts">
@@ -531,6 +531,52 @@ const paneById = Object.fromEntries(
 const detailById = Object.fromEntries(
   Array.from(projectHoldEl.querySelectorAll(".pane")).map(p => [p.id, p])
 );
+const ROUTES = [
+  { path: "/", title: "Shrey Gupta" },
+  { path: "/work/olive", title: "Olive", drawerId: "olive", workId: "olive" },
+  { path: "/work/campsite", title: "Campsite", drawerId: "campsite", workId: "campsite" },
+  { path: "/work/nasa", title: "NASA", drawerId: "nasa", workId: "nasa" },
+  { path: "/work/fundsy", title: "Fundsy", drawerId: "fundsy", workId: "fundsy" },
+  { path: "/work/irvine-lights", title: "Irvine Lights", drawerId: "irvine", workId: "irvine" },
+  { path: "/work/capital-one", title: "Capital One", drawerId: "capital", workId: "capital" },
+  { path: "/projects", title: "Projects", drawerId: "projects" },
+  { path: "/projects/yappin", title: "Yappin", drawerId: "projects", detailId: "project-yappin" },
+  { path: "/projects/phinances", title: "Phinances", drawerId: "projects", detailId: "project-phinances" },
+  { path: "/projects/davis-parking", title: "Davis Parking", drawerId: "projects", detailId: "project-parking" },
+  { path: "/projects/aggieworks", title: "AggieWorks", drawerId: "projects", detailId: "project-aggieworks" },
+  { path: "/projects/katamundi", title: "Katamundi", drawerId: "projects", detailId: "project-katamundi" },
+  { path: "/projects/home-networking", title: "Home Networking", drawerId: "projects", detailId: "project-home-networking" },
+  { path: "/projects/zoom-bookmarks", title: "Zoom Bookmarks", drawerId: "projects", detailId: "project-zoom-bookmarks" },
+  { path: "/thoughts", title: "Thoughts", drawerId: "thoughts" }
+];
+const ROUTE_BY_PATH = Object.fromEntries(ROUTES.map(route => [route.path, route]));
+const PATH_BY_WORK = Object.fromEntries(ROUTES.filter(route => route.workId).map(route => [route.workId, route.path]));
+const PATH_BY_DETAIL = Object.fromEntries(ROUTES.filter(route => route.detailId).map(route => [route.detailId, route.path]));
+const PATH_BY_DRAWER = Object.fromEntries(
+  ROUTES.filter(route => route.drawerId && !route.detailId && !route.workId)
+    .map(route => [route.drawerId, route.path])
+);
+const LEGACY_HASH_PATHS = {
+  about: "/",
+  home: "/",
+  olive: "/work/olive",
+  campsite: "/work/campsite",
+  nasa: "/work/nasa",
+  fundsy: "/work/fundsy",
+  irvine: "/work/irvine-lights",
+  "irvine-lights": "/work/irvine-lights",
+  capital: "/work/capital-one",
+  "capital-one": "/work/capital-one",
+  projects: "/projects",
+  thoughts: "/thoughts",
+  "project-yappin": "/projects/yappin",
+  "project-phinances": "/projects/phinances",
+  "project-parking": "/projects/davis-parking",
+  "project-aggieworks": "/projects/aggieworks",
+  "project-katamundi": "/projects/katamundi",
+  "project-home-networking": "/projects/home-networking",
+  "project-zoom-bookmarks": "/projects/zoom-bookmarks"
+};
 const opened = new Set();
 let paneEls = [];
 
@@ -613,6 +659,8 @@ function syncWorkLinks() {
     a.replaceChildren(document.createTextNode(label));
     if (active) a.appendChild(makeCloseIcon());
     a.classList.toggle("is-on", active);
+    if (active) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
   });
 }
 
@@ -625,6 +673,8 @@ function syncDetailLinks() {
     if (active) a.appendChild(makeCloseIcon());
     a.classList.toggle("is-on", active);
     a.setAttribute("aria-expanded", active ? "true" : "false");
+    if (active) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
   });
 }
 
@@ -635,7 +685,7 @@ function snapshotLUT() {
 function applyWork(id, lock, dur) {
   const next = id || null;
   if (next === workId) {
-    if (lock) workLocked = true;
+    if (lock) workLocked = !!workId;
     syncWorkLinks();
     return;
   }
@@ -1196,6 +1246,15 @@ function startDrawerSwitch(id) {
   layoutDeck();
 }
 
+function projectLinkForDetail(id) {
+  const projectsPane = paneById.projects;
+  return projectsPane && projectsPane.querySelector('a[data-detail="' + id + '"]');
+}
+
+function canRestoreDetailFocus(link) {
+  return !!(link && link.isConnected && drawerEl.contains(link) && !link.closest("[inert]"));
+}
+
 function focusDetailHeading(id) {
   const pane = detailById[id];
   const heading = pane && pane.querySelector(".name[tabindex]");
@@ -1299,14 +1358,14 @@ function startDetailSwitch(id) {
   layoutDeck();
 }
 
-function openDetail(id, trigger) {
+function openDetail(id, trigger, { focusHeading = true } = {}) {
   if (!detailById[id] || drawerId !== "projects") return;
   if (id === detailId && detailIntentOpen) {
     closeDetail();
     return;
   }
 
-  detailReturnLink = trigger || document.querySelector('a[data-detail="' + id + '"]');
+  detailReturnLink = trigger || projectLinkForDetail(id);
   detailRestoreFocus = true;
   detailEl.setAttribute("aria-hidden", "false");
   detailEl.inert = false;
@@ -1321,7 +1380,7 @@ function openDetail(id, trigger) {
     }
     layoutDeck();
     syncDetailLinks();
-    requestAnimationFrame(() => focusDetailHeading(id));
+    if (focusHeading) requestAnimationFrame(() => focusDetailHeading(id));
     return;
   }
 
@@ -1335,7 +1394,7 @@ function openDetail(id, trigger) {
       }
     }
     startDetailSwitch(id);
-    detailFocusPending = id;
+    detailFocusPending = focusHeading ? id : null;
   } else {
     mountDetail(id);
     if (detailCompact) {
@@ -1344,7 +1403,7 @@ function openDetail(id, trigger) {
     } else {
       emitPaneWave("open", "detail");
     }
-    requestAnimationFrame(() => focusDetailHeading(id));
+    if (focusHeading) requestAnimationFrame(() => focusDetailHeading(id));
   }
 
   layoutDeck();
@@ -1369,7 +1428,7 @@ function finishDetailClose() {
   layoutDeck();
   syncDetailLinks();
 
-  if (restore && returnLink && returnLink.isConnected && drawerId === "projects" && paneIntentOpen) {
+  if (restore && canRestoreDetailFocus(returnLink) && drawerId === "projects" && paneIntentOpen) {
     requestAnimationFrame(() => returnLink.focus({ preventScroll: true }));
   }
 }
@@ -1381,7 +1440,7 @@ function closeDetail({ restoreFocus = true } = {}) {
   detailEl.setAttribute("aria-hidden", "true");
   detailEl.inert = true;
 
-  if (detailRestoreFocus && detailReturnLink && detailReturnLink.isConnected &&
+  if (detailRestoreFocus && canRestoreDetailFocus(detailReturnLink) &&
       drawerId === "projects" && paneIntentOpen) {
     detailReturnLink.focus({ preventScroll: true });
     detailRestoreFocus = false;
@@ -1438,6 +1497,94 @@ function finishClose() {
   drawerEl.classList.remove("open");
   layoutDeck();
   syncWorkLinks();
+}
+
+function normalizeRoutePath(path) {
+  let normalized = (path || "/").replace(/\/{2,}/g, "/");
+  if (normalized.length > 1) normalized = normalized.replace(/\/+$/, "");
+  return normalized || "/";
+}
+
+function routeFromLocation() {
+  let legacyPath = null;
+  if (location.hash.length > 1) {
+    let hash = location.hash.slice(1);
+    try { hash = decodeURIComponent(hash); } catch (_) {}
+    legacyPath = LEGACY_HASH_PATHS[hash] || null;
+  }
+  const normalized = legacyPath || normalizeRoutePath(location.pathname);
+  const route = ROUTE_BY_PATH[normalized] || ROUTE_BY_PATH["/"];
+  return {
+    route,
+    needsReplace: route.path !== location.pathname || !!location.hash
+  };
+}
+
+function syncRouteMetadata(route) {
+  const pageTitle = route.path === "/" ? "Shrey Gupta" : route.title + " | Shrey Gupta";
+  const canonicalUrl = "https://shreygups.com" + route.path;
+  document.title = pageTitle;
+  const canonical = document.querySelector('link[rel="canonical"]');
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+  if (canonical) canonical.href = canonicalUrl;
+  if (ogTitle) ogTitle.content = pageTitle;
+  if (ogUrl) ogUrl.content = canonicalUrl;
+  if (twitterTitle) twitterTitle.content = pageTitle;
+}
+
+function applyRoute(route, { trigger = null, restoreFocus = false, focusHeading = false } = {}) {
+  if (route.detailId) {
+    applyWork(null, true);
+    openDrawer("projects");
+    if (detailId !== route.detailId || !detailIntentOpen) {
+      openDetail(route.detailId, trigger || projectLinkForDetail(route.detailId), { focusHeading });
+    }
+    syncWorkLinks();
+    syncDetailLinks();
+    return;
+  }
+
+  if (detailId) closeDetail({ restoreFocus });
+
+  if (!route.drawerId) {
+    if (drawerId) closeDrawer();
+    applyWork(null, true, CFG.revealIn);
+  } else {
+    applyWork(route.workId || null, true);
+    openDrawer(route.drawerId);
+  }
+  syncWorkLinks();
+  syncDetailLinks();
+}
+
+function navigateToPath(path, options = {}) {
+  const normalized = normalizeRoutePath(path);
+  const route = ROUTE_BY_PATH[normalized] || ROUTE_BY_PATH["/"];
+  const historyMode = options.historyMode || "push";
+  const alreadyCanonical = location.pathname === route.path && !location.hash && !location.search;
+
+  applyRoute(route, options);
+  if (historyMode === "replace") {
+    history.replaceState({ siteRoute: route.path }, "", route.path);
+  } else if (historyMode === "push" && !alreadyCanonical) {
+    history.pushState({ siteRoute: route.path }, "", route.path);
+  }
+  syncRouteMetadata(route);
+}
+
+function hydrateRoute() {
+  const { route, needsReplace } = routeFromLocation();
+  const routeUrl = route.path + location.search;
+  const restoreFocus = route.path === "/projects" &&
+    drawerId === "projects" && detailIntentOpen;
+  applyRoute(route, { restoreFocus });
+  if (needsReplace) history.replaceState({ siteRoute: route.path }, "", routeUrl);
+  else if (!history.state || history.state.siteRoute !== route.path) {
+    history.replaceState({ siteRoute: route.path }, "", routeUrl);
+  }
+  syncRouteMetadata(route);
 }
 
 function layoutDeck() {
@@ -1505,8 +1652,15 @@ function setup() {
 
 let openT = 0, sweepDone = false;
 
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const motion = reducedMotion ? 0 : 1;
+const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
+let reducedMotion = motionPreference.matches;
+let motion = reducedMotion ? 0 : 1;
+function syncMotionPreference(event) {
+  reducedMotion = event.matches;
+  motion = reducedMotion ? 0 : 1;
+}
+if (motionPreference.addEventListener) motionPreference.addEventListener("change", syncMotionPreference);
+else motionPreference.addListener(syncMotionPreference);
 let raf = 0, last = performance.now(), realT = 0, wtC = 0, wtW = 0;
 const sm = u => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
 const clamp01 = u => u <= 0 ? 0 : u >= 1 ? 1 : u;
@@ -1522,7 +1676,7 @@ let cornerFill = "#ff9f1c";
 let favShown = "";
 let favAt = -1;
 let favUrl = "";
-const FAV_GIF = "favicon.gif";
+const FAV_GIF = "/favicon.gif";
 
 function fillSquircle(ctx, x, y, size) {
   const n = 3.6;
@@ -1820,23 +1974,24 @@ function frame(now) {
 function onContentClick(e) {
   const a = e.target.closest("a[data-go], a[data-work], a[data-detail]");
   if (!a) return;
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  if ((a.target && a.target !== "_self") || a.hasAttribute("download")) return;
   e.preventDefault();
   const detail = a.getAttribute("data-detail");
   if (detail) {
-    openDetail(detail, a);
+    const path = detail === detailId && detailIntentOpen ? "/projects" : PATH_BY_DETAIL[detail];
+    navigateToPath(path, { trigger: a, restoreFocus: true, focusHeading: true });
     return;
   }
   const work = a.getAttribute("data-work");
   const go = a.getAttribute("data-go");
   if ((work && work === workId && workLocked) || (go && go === drawerId && paneIntentOpen)) {
-    closeDrawer();
+    navigateToPath("/");
     return;
   }
-  if (work) applyWork(work, true);
-  else if (go && go !== "about") applyWork(null, true);
-  if (go === "about") closeDrawer();
-  else if (go) openDrawer(go);
-  syncWorkLinks();
+  if (work) navigateToPath(PATH_BY_WORK[work]);
+  else if (go === "about") navigateToPath("/");
+  else if (go) navigateToPath(PATH_BY_DRAWER[go]);
 }
 deckEl.addEventListener("click", onContentClick);
 drawerEl.addEventListener("click", onContentClick);
@@ -1870,14 +2025,15 @@ deckEl.addEventListener("wheel", e => {
 
 addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey) return;
-  if (e.key === "Escape" && detailId) {
-    if (detailIntentOpen) closeDetail();
-    else finishDetailClose();
+  if (e.key === "Escape" && detailIntentOpen) {
+    navigateToPath("/projects", { restoreFocus: true });
   }
-  else if (e.key === "Escape" && drawerId) closeDrawer();
-  else if (e.key === "Escape" && workLocked) applyWork(null, true);
+  else if (e.key === "Escape" && paneIntentOpen) navigateToPath("/");
+  else if (e.key === "Escape" && workLocked) navigateToPath("/");
   else if (e.key === "m") { ensureTickAudio(); toggleMute(); }
 });
+
+addEventListener("popstate", hydrateRoute);
 
 addEventListener("resize", setup);
 addEventListener("orientationchange", setup);
@@ -1921,7 +2077,7 @@ document.addEventListener("visibilitychange", () => {
 bootPanes();
 setup();
 syncDetailLinks();
-if (location.hash || location.search) history.replaceState(null, "", location.pathname);
+hydrateRoute();
 deckEl.classList.add("show");
 deckEl.setAttribute("aria-hidden", "false");
 raf = requestAnimationFrame(frame);
