@@ -140,10 +140,10 @@
   #deck.show {
     pointer-events: auto;
   }
-  #drawer {
+  #drawer,
+  #detail {
     position: absolute;
     top: var(--pane-top, 20px);
-    left: calc(var(--side-pad, 20px) + var(--pane-w, 25%));
     width: var(--pane-w, 25%);
     height: var(--pane-h, calc(100% - 40px));
     z-index: 2;
@@ -151,7 +151,14 @@
     display: none;
     background: var(--bg);
   }
-  #drawer::before {
+  #drawer {
+    left: calc(var(--side-pad, 20px) + var(--pane-w, 25%));
+  }
+  #detail {
+    left: var(--detail-left, calc(var(--side-pad, 20px) + var(--pane-w, 25%) + var(--pane-w, 25%)));
+  }
+  #drawer::before,
+  #detail::before {
     content: "";
     position: absolute;
     inset: 0 auto 0 0;
@@ -160,16 +167,19 @@
     pointer-events: none;
     background: color-mix(in srgb, var(--accent) 15%, var(--bg));
   }
-  #drawer.open {
+  #drawer.open,
+  #detail.open {
     display: block;
     pointer-events: auto;
   }
-  #drawer-body {
+  #drawer-body,
+  #detail-body {
     position: relative;
     width: 100%;
     height: 100%;
   }
-  #drawer .pane {
+  #drawer .pane,
+  #detail .pane {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -218,6 +228,7 @@
   .pane a:hover,
   .pane a:focus-visible,
   .pane a.is-on { color: var(--link-on); }
+  .editorial a.text-link { text-decoration: underline; }
 
   .editorial {
     font: 400 1rem / 1.5 var(--font);
@@ -245,6 +256,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
+  }
+  nav.work-list {
+    margin: 0 0 1em;
   }
   .work-list a,
   .work-list span {
@@ -280,7 +294,6 @@
     align-items: flex-start;
     margin: auto 0 0;
   }
-
   #ytwrap {
     position: fixed;
     left: -9999px;
@@ -302,6 +315,9 @@
   </div>
   <div id="drawer">
     <div id="drawer-body"></div>
+  </div>
+  <div id="detail" role="region" aria-hidden="true" aria-label="Project details">
+    <div id="detail-body"></div>
   </div>
 </div>
 
@@ -331,36 +347,58 @@
   </article>
   <article class="pane editorial" id="olive">
     <p class="name">Olive</p>
-    <p>wip</p>
+    <p>For all of 2025 and much of 2026, I worked on Olive as co-founder &amp; CTO. It took on a few shapes over time, but the core product we shipped &amp; sold was AI-native internal tools.</p>
+    <p>My close friend <a class="text-link" href="https://www.linkedin.com/in/bardiasafari/" target="_blank" rel="noopener noreferrer">Bardia</a> and I decided to start a company after a great experience working on Fundsy together. We were both in school and getting more interested in our experiments, so we decided to go full time on it. During the YC W25 batch, we launched as "<a class="text-link" href="https://www.ycombinator.com/launches/MvY-olive-build-internal-tools-with-natural-language" target="_blank" rel="noopener noreferrer">Lovable for internal tools</a>."</p>
+    <p>It was exciting to build a cloud platform where you could use AI to build tools connected to your database. A company's database is one of its most prized assets, so we cared a lot about the safety of our code &amp; infrastructure, but also what controls the AI agents we built had. When we started, there was no Claude Code and the best model for coding was Claude Sonnet 3.5.</p>
+    <p>We loved working with customers with around 20 employees. Ones we could talk with on Monday, prototype something in a few days, ship by Wednesday, get feedback &amp; iterate &amp; ship again by Friday. We slowly realized this type of product worked best in enterprise environments. There was a distinct moment in Orlando at a business &amp; data leaders conference where we realized six-month sales cycles and company politics would hurt that iteration speed.</p>
+    <p>We decided to pivot a space with unmatched iteration speed: consumer apps. It was exhilarating building &amp; publishing apps that our friends could use. It made us closer to our friends in a way AI B2B SaaS could never. Over five months, we shipped two apps.</p>
+    <p>The first was an app to find great ideas &amp; inspiration from the web. We wanted to do away with the brainrot consuming all of our social media. There was a time when the internet made you feel inspired, from funny blogs to detailed technical deep dives. We wanted to put those behind a recommender system and put those on your phone as a morning routine.</p>
+    <p>Our second app was called Treehouse: FaceTime with games. I started using Zoom to call my girlfriend because it was better for sharing music. Bardia and his friends would play games on FaceTime and it was a weirdly difficult experience. We were big Houseparty users back in the day so this was a very nostalgic project of ours.</p>
   </article>
   <article class="pane editorial" id="irvine">
     <p class="name">Irvine Lights</p>
-    <p>wip</p>
+    <p>I started Irvine Lights as a freshman in high school. It began as Kidz Club, a science camp where four friends and I ran STEAM events at local community centers.</p>
+    <p>Before sophomore year, I filed the 1023-EZ myself and turned it into a nonprofit. I posted one Instagram story looking for people to start chapters at their schools and ended up with 25 student organizers across Irvine. We ran camps, workshops, and larger community events for hundreds of kids.</p>
+    <p>During COVID, most of that stopped working. I started using Irvine Lights as a fiscal sponsor instead, helping other students start community projects under our nonprofit. We handled their donations, budgets, reimbursements, and finances, which eventually became the problem that led us to build Fundsy.</p>
   </article>
   <article class="pane editorial" id="fundsy">
     <p class="name">Fundsy</p>
-    <p>wip</p>
+    <p>Fundsy was a platform to start &amp; manage community projects.</p>
+    <p>I founded it at age 16 with my best friends <a class="text-link" href="https://x.com/bardia_safari" target="_blank" rel="noopener noreferrer">Bardia</a> &amp; <a class="text-link" href="https://www.linkedin.com/in/ericswlee/" target="_blank" rel="noopener noreferrer">Eric</a>. None of us had built an app before. We came together as a team for the Congressional App Challenge.</p>
+    <p>The idea came directly from running Irvine Lights. I was fiscally sponsoring community projects for a few friends. Donations would come in through PayPal, and I would manually reconcile every dollar, manage budgets, and process reimbursements.</p>
+    <p>We built Fundsy to handle all of that in one place. Projects could accept donations, track their balance and budget, submit reimbursements, and issue cards to team members for spending. We built the card product on Stripe Issuing, which was still in beta at the time.</p>
+    <p>Each project had its own finances, but everything still rolled up to the fiscal sponsor. That meant we had to keep track of which money belonged to which project, who was allowed to spend it, and make sure every transaction was accounted for.</p>
+    <p>We won the Congressional App Challenge and ran Fundsy for three years. A lot of customer support happened while we were walking our dogs.</p>
   </article>
   <article class="pane editorial" id="nasa">
     <p class="name">NASA</p>
-    <p>wip</p>
+    <p>At NASA, I worked on the <a class="text-link" href="https://csdap.earthdata.nasa.gov/" target="_blank" rel="noopener noreferrer">SmallSat Data Acquisition team</a> as a Software Engineering Intern. We handled a huge stream of satellite imagery, nearly 200 petabytes per year, which was distributed to licensees including government departments and university researchers.</p>
+    <p>I worked on a feature that let licensees run analysis and computation on NASA's servers before transferring the data out. Instead of downloading massive amounts of imagery and processing it themselves, they could filter for only the data they actually needed. Because compute was relatively cheap and far fewer images had to leave NASA's network, this would save millions of dollars in egress costs.</p>
+    <p>For example, a researcher could identify which bodies of water had grown or changed color, then download only the relevant imagery for further analysis.</p>
   </article>
   <article class="pane editorial" id="campsite">
     <p class="name">Campsite</p>
-    <p>wip</p>
+    <p><a class="text-link" href="https://campsite.com" target="_blank" rel="noopener noreferrer">Campsite</a> was a five-person team and some of the most talented people I've ever worked with. It was an async team communication platform that focused on deep work and independent thought. Surprisingly, this had a significant, positive second order effect on speed. I modeled a lot of how we worked at Olive after Campsite.</p>
+    <p>As a software engineering intern, my big project was to build out the "<a class="text-link" href="https://x.com/brian_lovin/status/1792670428936520142?s=20" target="_blank" rel="noopener noreferrer">Follow Ups</a>" functionality &amp; integrate it across the app. I came in with little TypeScript &amp; no Ruby on Rails experience, and came out with a deep understanding of React styling, portals, Rails &amp; DB modeling. It was the first place I learned how production software actually works (migrations, backfills, N+1 queries, job queues, SSO, etc).</p>
   </article>
   <article class="pane editorial" id="capital">
     <p class="name">Capital One</p>
-    <p>wip</p>
+    <p>At Capital One, my team worked on a customer retention module for call centers.&nbsp; Call center agents could take cute life moments from things people say on calls, like a customer mentioning their son graduating, and send them a small surprise gift.</p>
+    <p>This program was called <a class="text-link" href="https://www.reddit.com/r/Venturex/comments/1fhl3cb/received_a_gift_from_capital_one_customer_service/" target="_blank" rel="noopener noreferrer">Surprise &amp; Delight</a> and it had been running for 5 years before we built this, but everything used Google Forms and operations staff to do the purchasing manually. We directly integrated it in their software and automated it.</p>
+    <p>It was funny since our product actually had Capital One spending more money.</p>
+    <p>I lived in Richmond, VA, which had surprisingly great food and concerts.</p>
   </article>
   <article class="pane editorial" id="projects">
     <p class="name">Projects</p>
-    <p class="work-list">
-      <span>Yappin</span>
-      <span>Phinances</span>
-      <span>Zoom Bookmarks</span>
-      <span>wip</span>
-    </p>
+    <nav class="work-list" aria-label="Projects">
+      <a href="#project-yappin" data-detail="project-yappin" aria-controls="detail" aria-expanded="false">Yappin</a>
+      <a href="#project-phinances" data-detail="project-phinances" aria-controls="detail" aria-expanded="false">Phinances</a>
+      <a href="#project-parking" data-detail="project-parking" aria-controls="detail" aria-expanded="false">Davis Parking</a>
+      <a href="#project-aggieworks" data-detail="project-aggieworks" aria-controls="detail" aria-expanded="false">AggieWorks</a>
+      <a href="#project-katamundi" data-detail="project-katamundi" aria-controls="detail" aria-expanded="false">Katamundi</a>
+      <a href="#project-home-networking" data-detail="project-home-networking" aria-controls="detail" aria-expanded="false">Home Networking</a>
+      <a href="#project-zoom-bookmarks" data-detail="project-zoom-bookmarks" aria-controls="detail" aria-expanded="false">Zoom Bookmarks</a>
+    </nav>
   </article>
   <article class="pane editorial" id="thoughts">
     <p class="name">Thoughts</p>
@@ -368,7 +406,48 @@
   </article>
 </div>
 
-<div id="ytwrap"><div id="yt"></div></div>
+<div id="project-hold" hidden>
+  <article class="pane editorial" id="project-yappin">
+    <p class="name" tabindex="-1">Yappin</p>
+    <p>I built <a class="text-link" href="https://apps.apple.com/us/app/yappin-next-level-chat/id6478449026" target="_blank" rel="noopener noreferrer">Yappin</a>, an anonymous chat app that put everyone physically around you in a group chat, for an iOS class at Davis. The prof said if your app got 300 daily active users, it was a guaranteed A+.</p>
+    <p>A lot of sleepless nights and a surprising amount of business cards got us the users. It was one of the best classes I took.</p>
+  </article>
+  <article class="pane editorial" id="project-phinances">
+    <p class="name" tabindex="-1">Phinances</p>
+    <p>I became my fraternity's treasurer partly because I wanted to replace the very old iMessage + Zelle system we used to manage money. (&amp; make it a little harder for people to embezzle funds...)</p>
+    <p>I built Phinances to manage dues, reimbursements, budgets, and bank balances for college organizations. Members could see what they owed and submit reimbursements, while officers could track spending against budgets and see where the organization's money was going.</p>
+    <p>It connected directly to bank accounts through Plaid and used Increase to do ACH push + pull.</p>
+  </article>
+  <article class="pane editorial" id="project-parking">
+    <p class="name" tabindex="-1">Davis Parking</p>
+    <p>Parking at Davis cost $3 or $4 every day, and paying meant reentering my plate and card in a slow, buggy web app. I wanted to build something that knew where I was and let me pay with one click.</p>
+    <p>While building it, I found a vulnerability that could have refunded something like $10 million in parking payments.</p>
+    <p>I responsibly disclosed it and became micro-famous on campus for giving everyone free parking for a week. UC Davis Transportation later published an <a class="text-link" href="https://transportation.ucdavis.edu/news/amp-park-security-issue-resolved" target="_blank" rel="noopener noreferrer">incident notice</a>.</p>
+  </article>
+  <article class="pane editorial" id="project-aggieworks">
+    <p class="name" tabindex="-1">AggieWorks</p>
+    <p>At Davis, I led <a class="text-link" href="https://aggieworks.org/" target="_blank" rel="noopener noreferrer">AggieWorks</a>, a product &amp; engineering club that built apps for students. I became VP of Product mostly because the club had a pretty big operational issue: it had never launched a product. After 1 year, we had launched five apps, with a few being widely used on campus.</p>
+    <p>This is where I learned how important culture &amp; energy are to team building.</p>
+  </article>
+  <article class="pane editorial" id="project-katamundi">
+    <p class="name" tabindex="-1">Katamundi</p>
+    <p>Katamundi was my first software internship, when Bardia and I were 15. We joined a tiny remote team building an app for kids to start volunteering clubs, pretended we knew React, and committed weird Django code to the product. I did not understand callbacks or tunnels yet, so I used an old version of the Stripe SDK to get around all of that.</p>
+  </article>
+  <article class="pane editorial" id="project-home-networking">
+    <p class="name" tabindex="-1">Home Networking</p>
+    <p>I noticed that my school had an access point in every room and decided my house should too. I rebuilt our home network with outdated, cheap Ubiquiti hardware and put access points throughout the house.</p>
+    <p>Was a great way to learn the physical part of the internet &amp; make our WiFi slightly faster / more reliable.</p>
+    <p>More recently, I used Claude Code to SSH into the machine and debug a terrible issue where the internet would cut out for a minute every few hours. It doesn't sound bad, but it was horrendously unreliable for video calls. It figured out the machine was running out of memory and basically restarting in a loop. The problem was threat protection, so it reviewed all the settings &amp; reconfigured everything. The WiFi has been faster &amp; more reliable since.</p>
+  </article>
+  <article class="pane editorial" id="project-zoom-bookmarks">
+    <p class="name" tabindex="-1">Zoom Bookmarks</p>
+    <p>During remote school, I got tired of hunting for a different meeting link before every class. I built <a class="text-link" href="https://www.producthunt.com/products/zoom-bookmarks?launch=zoom-bookmarks" target="_blank" rel="noopener noreferrer">Zoom Bookmarks</a>, a Chrome extension that saved each class's Zoom ID, password, or link and opened it from the toolbar. It also closed the useless launch tab Zoom left behind.</p>
+    <p>My first app with 1000 users!</p>
+    <p>I also made a <a class="text-link" href="https://github.com/shreygups/zoom-bookmarks" target="_blank" rel="noopener noreferrer">guide on how people can make something similar</a>.</p>
+  </article>
+</div>
+
+<div id="ytwrap" inert aria-hidden="true"><div id="yt"></div></div>
 
 <script>
 (() => {
@@ -432,11 +511,25 @@ const stripEl = document.getElementById("strip");
 const holdEl = document.getElementById("hold");
 const drawerEl = document.getElementById("drawer");
 const drawerBodyEl = document.getElementById("drawer-body");
+const detailEl = document.getElementById("detail");
+const detailBodyEl = document.getElementById("detail-body");
+const projectHoldEl = document.getElementById("project-hold");
+detailEl.inert = true;
 let drawerId = null;
 const drawerSwitches = [];
+let detailId = null;
+let detailIntentOpen = false;
+let detailCompact = false;
+let detailReturnLink = null;
+let detailRestoreFocus = true;
+let detailFocusPending = null;
+const detailSwitches = [];
 const PANE_ORDER = ["about", "olive", "campsite", "nasa", "fundsy", "irvine", "capital", "projects", "thoughts"];
 const paneById = Object.fromEntries(
   Array.from(holdEl.querySelectorAll(".pane")).map(p => [p.id, p])
+);
+const detailById = Object.fromEntries(
+  Array.from(projectHoldEl.querySelectorAll(".pane")).map(p => [p.id, p])
 );
 const opened = new Set();
 let paneEls = [];
@@ -444,12 +537,13 @@ let paneEls = [];
 let paneW = 0, paneH = 0, paneGap = 0, paneTop = 0, sidePad = 0;
 let paneStride = 0;
 let colorLeft = 1;
-let homeRight = 1, drawerCols = 0, drawerL = 1, drawerR = 1;
+let homeRight = 1, drawerCols = 0, drawerL = 1, drawerR = 1, detailL = 1, detailR = 1;
 let paneIntentOpen = false;
 let paneWaveSeq = 0;
 const paneWaves = [];
 let paneCellOpen = new Uint8Array(0);
 let paneCellEvent = new Uint32Array(0);
+let paneCellLayoutKey = "";
 let targetPane = 0, stripX = 0, stripTarget = 0, stripFrom = 0, stripAnimT = 1;
 
 function fillLUT(out, palette) {
@@ -500,6 +594,14 @@ const WORK = {
 
 let workId = null, workLocked = false, workSeed = 0, workSeedTo = 0;
 
+function makeCloseIcon() {
+  const icon = document.createElement("span");
+  icon.className = "close-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.innerHTML = '<svg viewBox="0 0 12 12"><path d="M4 4 8 8M8 4 4 8"/></svg>';
+  return icon;
+}
+
 function syncWorkLinks() {
   deckEl.querySelectorAll("a[data-work], a[data-go]").forEach(a => {
     const label = a.dataset.label || a.textContent.replace(/^\[|\]$/g, "");
@@ -509,14 +611,20 @@ function syncWorkLinks() {
     const active = (work && workLocked && work === workId) ||
       (!work && go && go === drawerId && paneIntentOpen);
     a.replaceChildren(document.createTextNode(label));
-    if (active) {
-      const icon = document.createElement("span");
-      icon.className = "close-icon";
-      icon.setAttribute("aria-hidden", "true");
-      icon.innerHTML = '<svg viewBox="0 0 12 12"><path d="M4 4 8 8M8 4 4 8"/></svg>';
-      a.appendChild(icon);
-    }
+    if (active) a.appendChild(makeCloseIcon());
     a.classList.toggle("is-on", active);
+  });
+}
+
+function syncDetailLinks() {
+  document.querySelectorAll("a[data-detail]").forEach(a => {
+    const label = a.dataset.label || a.textContent;
+    a.dataset.label = label;
+    const active = detailIntentOpen && a.getAttribute("data-detail") === detailId;
+    a.replaceChildren(document.createTextNode(label));
+    if (active) a.appendChild(makeCloseIcon());
+    a.classList.toggle("is-on", active);
+    a.setAttribute("aria-expanded", active ? "true" : "false");
   });
 }
 
@@ -610,40 +718,65 @@ function paneWaveGlowWidth(wave, j) {
   return Math.max(1.5, CFG.drawerGlowCols + flow + breath);
 }
 
-function ensurePaneCells() {
-  const size = Math.max(0, cols * rows);
-  if (paneCellOpen.length === size) return;
-  paneCellOpen = new Uint8Array(size);
-  paneCellEvent = new Uint32Array(size);
-  if (paneIntentOpen && drawerId) paneCellOpen.fill(1);
+function paneBand(name) {
+  return name === "detail"
+    ? { left: detailL, right: detailR }
+    : { left: drawerL, right: drawerR };
 }
 
-function paneCellsMatch(open) {
+function setPaneIntent(name, open) {
+  if (name === "detail") detailIntentOpen = open;
+  else paneIntentOpen = open;
+}
+
+function markPaneBand(name, open) {
+  const { left, right } = paneBand(name);
+  const value = open ? 1 : 0;
+  for (let j = 1; j < rows - 1; j++) {
+    for (let i = left; i < right; i++) paneCellOpen[j * cols + i] = value;
+  }
+}
+
+function ensurePaneCells() {
+  const layoutKey = [cols, rows, drawerL, drawerR, detailL, detailR].join(":");
+  if (paneCellOpen.length === Math.max(0, cols * rows) && paneCellLayoutKey === layoutKey) return;
+  paneCellLayoutKey = layoutKey;
+  paneWaves.length = 0;
+  paneCellOpen = new Uint8Array(Math.max(0, cols * rows));
+  paneCellEvent = new Uint32Array(paneCellOpen.length);
+  if (paneIntentOpen && drawerId) markPaneBand("drawer", true);
+  if (detailIntentOpen && detailId) markPaneBand("detail", true);
+}
+
+function paneCellsMatch(open, name = "drawer") {
+  const { left, right } = paneBand(name);
   const wanted = open ? 1 : 0;
   for (let j = 1; j < rows - 1; j++) {
-    for (let i = drawerL; i < drawerR; i++) {
+    for (let i = left; i < right; i++) {
       if (paneCellOpen[j * cols + i] !== wanted) return false;
     }
   }
   return true;
 }
 
-function emitPaneWave(action) {
+function emitPaneWave(action, name = "drawer") {
   const opening = action === "open";
   const dir = opening ? 1 : -1;
+  const { left, right } = paneBand(name);
   const opposite = [...paneWaves].reverse().find(wave =>
-    wave.action !== action && wave.strength > 0.02
+    wave.band === name && wave.action !== action && wave.strength > 0.02
   );
-  /* Start on the drawer lip so the first tiles move immediately, then
-     only travel the column itself — not the whole color field. */
+  /* Start on the pane lip so the first tiles move immediately, then
+     only travel that column instead of the whole color field. */
   const lead = 1.15;
   const source = opposite
     ? opposite.x
-    : (opening ? drawerL - lead : drawerR - 1 + lead);
-  const speed = (drawerR - drawerL + lead * 2) / CFG.revealIn;
+    : (opening ? left - lead : right - 1 + lead);
+  const speed = (right - left + lead * 2) / CFG.revealIn;
 
   paneWaves.push({
     id: ++paneWaveSeq,
+    band: name,
     action,
     dir,
     x: source,
@@ -654,7 +787,7 @@ function emitPaneWave(action) {
     seed: Math.random() * 1000,
     phase: Math.random() * Math.PI * 2
   });
-  paneIntentOpen = opening;
+  setPaneIntent(name, opening);
 }
 
 function updatePaneWaves(dt) {
@@ -662,18 +795,19 @@ function updatePaneWaves(dt) {
   const finishAt = lead + 2;
   for (let w = paneWaves.length - 1; w >= 0; w--) {
     const wave = paneWaves[w];
+    const { left, right } = paneBand(wave.band);
     wave.age += dt;
     wave.x += wave.dir * wave.speed * dt;
 
     const beyond = wave.dir > 0
-      ? Math.max(0, wave.x - (drawerR - 1 + lead))
-      : Math.max(0, (drawerL - lead) - wave.x);
+      ? Math.max(0, wave.x - (right - 1 + lead))
+      : Math.max(0, (left - lead) - wave.x);
     const strengthTarget = beyond > 0 ? Math.max(0, 1 - beyond / finishAt) : 1;
     const strengthRate = strengthTarget > wave.strength ? 8 : 4;
     wave.strength += (strengthTarget - wave.strength) * (1 - Math.exp(-dt * strengthRate));
 
     for (let j = 1; j < rows - 1; j++) {
-      for (let i = drawerL; i < drawerR; i++) {
+      for (let i = left; i < right; i++) {
         const index = j * cols + i;
         if (paneWaveEdge(wave, i, j) >= 0 && wave.id >= paneCellEvent[index]) {
           paneCellEvent[index] = wave.id;
@@ -688,8 +822,10 @@ function updatePaneWaves(dt) {
 
 function paneWaveLight(i, j) {
   let glow = 0;
-  const onField = i < drawerL || i >= drawerR;
   for (const wave of paneWaves) {
+    const left = wave.band === "detail" ? detailL : drawerL;
+    const right = wave.band === "detail" ? detailR : drawerR;
+    const onField = i < left || i >= right;
     const width = paneWaveGlowWidth(wave, j);
     const e = paneWaveEdge(wave, i, j);
     if (Math.abs(e) > width * 1.8) continue;
@@ -748,6 +884,11 @@ window.onYouTubeIframeAPIReady = function () {
     events: {
       onReady: e => {
         ytReady = true;
+        const iframe = e.target.getIframe && e.target.getIframe();
+        if (iframe) {
+          iframe.tabIndex = -1;
+          iframe.setAttribute("aria-hidden", "true");
+        }
         e.target.setVolume(ytVol);
         e.target.unMute();
         e.target.playVideo();
@@ -818,7 +959,7 @@ let lastBeat = -10, beatArmed = true, hueSpin = 0;
 const ripples = [];
 
 function breathe(dt) {
-  /* Steady field — no periodic swell, beat ripples, or hue kicks. */
+  /* Steady field with no periodic swell, beat ripples, or hue kicks. */
   live.bass = 0.35;
   live.mid = 0.35;
   live.high = 0.35;
@@ -838,12 +979,17 @@ function pointerOnField(cx, cy) {
   if (!cols) return false;
   const x = (cx - offX) / cell, y = (cy - offY) / cell;
   const i = Math.floor(x), j = Math.floor(y);
-  const onActiveText =
+  const onDrawerText =
     drawerId &&
     i >= drawerL && i < drawerR &&
     j >= 1 && j < rows - 1 &&
     paneCellOpen[j * cols + i] === 1;
-  if (onActiveText) return false;
+  const onDetailText =
+    detailId &&
+    i >= detailL && i < detailR &&
+    j >= 1 && j < rows - 1 &&
+    paneCellOpen[j * cols + i] === 1;
+  if (onDrawerText || onDetailText) return false;
   return x >= homeRight && x < cols - 1 && y >= 1 && y < rows - 1;
 }
 function stampWake(cx, cy, force) {
@@ -867,13 +1013,14 @@ function mouseSpark(cx, cy, strong, force) {
   tick(SCALE[step] * (strong ? 0.5 : 1), strong);
 }
 function onDown(e) {
-  if (deckEl.contains(e.target)) return;
+  if (deckEl.contains(e.target) || drawerEl.contains(e.target) || detailEl.contains(e.target)) return;
   ensureTickAudio(); kickAudio();
   dragging = true;
   stampWake(e.clientX, e.clientY, true);
   mouseSpark(e.clientX, e.clientY, true, true);
 }
 function onMove(e) {
+  if (detailEl.contains(e.target)) return;
   stampWake(e.clientX, e.clientY, false);
   mouseSpark(e.clientX, e.clientY, dragging, false);
 }
@@ -1025,6 +1172,8 @@ function startDrawerSwitch(id) {
   const layer = sourcePane.cloneNode(true);
   layer.removeAttribute("id");
   layer.dataset.pageId = id;
+  layer.setAttribute("aria-hidden", "true");
+  layer.inert = true;
   layer.scrollTop = 0;
   layer.style.clipPath = "inset(0 0 100% 0)";
   layer.style.pointerEvents = "none";
@@ -1047,7 +1196,212 @@ function startDrawerSwitch(id) {
   layoutDeck();
 }
 
+function focusDetailHeading(id) {
+  const pane = detailById[id];
+  const heading = pane && pane.querySelector(".name[tabindex]");
+  if (!heading || !detailEl.contains(heading) || detailId !== id || !detailIntentOpen) return;
+  heading.focus({ preventScroll: true });
+}
+
+function mountDetail(id) {
+  if (detailId && detailId !== id && detailById[detailId]) {
+    projectHoldEl.appendChild(detailById[detailId]);
+  }
+  detailId = id;
+  detailById[id].style.clipPath = "";
+  detailById[id].style.pointerEvents = "";
+  detailBodyEl.appendChild(detailById[id]);
+  detailEl.classList.add("open");
+  detailEl.setAttribute("aria-hidden", "false");
+  detailEl.inert = false;
+}
+
+function disposeDetailLayer(layer, keep) {
+  if (layer === keep) return;
+  if (layer.id && detailById[layer.id] === layer) {
+    layer.style.clipPath = "";
+    layer.style.pointerEvents = "";
+    projectHoldEl.appendChild(layer);
+  } else {
+    layer.remove();
+  }
+}
+
+function settleDetailLayers() {
+  if (!detailId || !detailById[detailId]) return;
+  const canonical = detailById[detailId];
+  Array.from(detailBodyEl.children).forEach(layer => disposeDetailLayer(layer, canonical));
+  canonical.style.clipPath = "";
+  canonical.style.pointerEvents = "";
+  canonical.scrollTop = 0;
+  detailBodyEl.appendChild(canonical);
+}
+
+function finishDetailSwitch(transition) {
+  const idx = detailSwitches.indexOf(transition);
+  if (idx < 0) return;
+  transition.layer.style.clipPath = "";
+
+  let older = transition.layer.previousElementSibling;
+  while (older) {
+    const previous = older.previousElementSibling;
+    disposeDetailLayer(older);
+    older = previous;
+  }
+  detailSwitches.splice(idx, 1);
+
+  if (detailSwitches.length === 0) {
+    settleDetailLayers();
+    for (let k = 0; k < cache.length; k++) cache[k] = undefined;
+    if (detailFocusPending === detailId) {
+      const id = detailFocusPending;
+      detailFocusPending = null;
+      requestAnimationFrame(() => focusDetailHeading(id));
+    }
+  }
+}
+
+function updateDetailSwitchClip(transition) {
+  const cutRows = switchBandCenter(transition.vis) - 1;
+  const cutPx = Math.max(0, Math.min(paneH, cutRows * cell));
+  transition.layer.style.clipPath = "inset(0 0 " + Math.max(0, paneH - cutPx) + "px 0)";
+}
+
+function startDetailSwitch(id) {
+  const sourcePane = detailById[id];
+  if (!sourcePane) return;
+
+  const layer = sourcePane.cloneNode(true);
+  layer.removeAttribute("id");
+  layer.dataset.detailId = id;
+  layer.setAttribute("aria-hidden", "true");
+  layer.inert = true;
+  layer.scrollTop = 0;
+  layer.style.clipPath = "inset(0 0 100% 0)";
+  layer.style.pointerEvents = "none";
+  detailBodyEl.querySelectorAll(":scope > .pane").forEach(pane => {
+    pane.style.pointerEvents = "none";
+  });
+  detailBodyEl.appendChild(layer);
+
+  detailSwitches.push({
+    to: id,
+    layer,
+    p: 0,
+    vis: 0,
+    seed: Math.random() * 1000,
+    phase: Math.random() * Math.PI * 2
+  });
+  detailId = id;
+  detailEl.classList.add("open");
+  detailEl.setAttribute("aria-hidden", "false");
+  detailEl.inert = false;
+  layoutDeck();
+}
+
+function openDetail(id, trigger) {
+  if (!detailById[id] || drawerId !== "projects") return;
+  if (id === detailId && detailIntentOpen) {
+    closeDetail();
+    return;
+  }
+
+  detailReturnLink = trigger || document.querySelector('a[data-detail="' + id + '"]');
+  detailRestoreFocus = true;
+  detailEl.setAttribute("aria-hidden", "false");
+  detailEl.inert = false;
+
+  if (id === detailId) {
+    detailEl.classList.add("open");
+    if (detailCompact) {
+      detailIntentOpen = true;
+      markPaneBand("detail", true);
+    } else {
+      emitPaneWave("open", "detail");
+    }
+    layoutDeck();
+    syncDetailLinks();
+    requestAnimationFrame(() => focusDetailHeading(id));
+    return;
+  }
+
+  if (detailId) {
+    if (!detailIntentOpen) {
+      if (detailCompact) {
+        detailIntentOpen = true;
+        markPaneBand("detail", true);
+      } else {
+        emitPaneWave("open", "detail");
+      }
+    }
+    startDetailSwitch(id);
+    detailFocusPending = id;
+  } else {
+    mountDetail(id);
+    if (detailCompact) {
+      detailIntentOpen = true;
+      markPaneBand("detail", true);
+    } else {
+      emitPaneWave("open", "detail");
+    }
+    requestAnimationFrame(() => focusDetailHeading(id));
+  }
+
+  layoutDeck();
+  syncDetailLinks();
+}
+
+function finishDetailClose() {
+  if (!detailId) return;
+  const returnLink = detailReturnLink;
+  const restore = detailRestoreFocus;
+
+  detailSwitches.splice(0);
+  Array.from(detailBodyEl.children).forEach(layer => disposeDetailLayer(layer));
+  detailId = null;
+  detailIntentOpen = false;
+  detailFocusPending = null;
+  detailReturnLink = null;
+  detailRestoreFocus = true;
+  detailEl.classList.remove("open");
+  detailEl.setAttribute("aria-hidden", "true");
+  detailEl.inert = true;
+  layoutDeck();
+  syncDetailLinks();
+
+  if (restore && returnLink && returnLink.isConnected && drawerId === "projects" && paneIntentOpen) {
+    requestAnimationFrame(() => returnLink.focus({ preventScroll: true }));
+  }
+}
+
+function closeDetail({ restoreFocus = true } = {}) {
+  if (!detailId) return;
+  detailRestoreFocus = detailRestoreFocus && restoreFocus;
+  detailFocusPending = null;
+  detailEl.setAttribute("aria-hidden", "true");
+  detailEl.inert = true;
+
+  if (detailRestoreFocus && detailReturnLink && detailReturnLink.isConnected &&
+      drawerId === "projects" && paneIntentOpen) {
+    detailReturnLink.focus({ preventScroll: true });
+    detailRestoreFocus = false;
+  }
+
+  if (!detailIntentOpen) {
+    if (detailCompact) finishDetailClose();
+    else syncDetailLinks();
+    return;
+  }
+  if (detailCompact) {
+    finishDetailClose();
+    return;
+  }
+  emitPaneWave("close", "detail");
+  syncDetailLinks();
+}
+
 function openDrawer(id) {
+  if (id !== "projects") closeDetail({ restoreFocus: false });
   if (!paneById[id] || id === "about") {
     closeDrawer();
     return;
@@ -1072,6 +1426,7 @@ function openDrawer(id) {
 
 function closeDrawer() {
   if (!drawerId || !paneIntentOpen) return;
+  closeDetail({ restoreFocus: false });
   emitPaneWave("close");
   applyWork(null, true, CFG.revealIn);
 }
@@ -1087,7 +1442,7 @@ function finishClose() {
 
 function layoutDeck() {
   /* One unlit tile around the board. Home bar is a thin column;
-     an open drawer takes a second column of the same width. */
+     open drawer and detail panes each take another column. */
   const innerCols = Math.max(1, cols - 2);
   const innerRows = Math.max(1, rows - 2);
   const preferredSidebarCols = Math.max(10, Math.round(innerCols / 4));
@@ -1096,7 +1451,10 @@ function layoutDeck() {
   homeRight = 1 + sidebarCols;
   drawerL = homeRight;
   drawerR = homeRight + sidebarCols;
-  colorLeft = drawerId ? drawerR : homeRight;
+  detailCompact = innerCols < sidebarCols * 3;
+  detailL = detailCompact ? drawerL : drawerR;
+  detailR = detailL + sidebarCols;
+  colorLeft = detailId ? detailR : drawerId ? drawerR : homeRight;
 
   sidePad = offX + cell;
   paneTop = offY + cell;
@@ -1111,12 +1469,15 @@ function layoutDeck() {
   root.setProperty("--pane-gap", "0px");
   root.setProperty("--pane-top", paneTop + "px");
   root.setProperty("--side-pad", sidePad + "px");
+  root.setProperty("--detail-left", sidePad + (detailCompact ? paneW : paneW * 2) + "px");
+  detailEl.classList.toggle("compact", detailCompact);
 
   stripTarget = targetPane * paneStride;
   stripX = stripFrom = stripTarget;
   stripAnimT = 1;
   root.setProperty("--strip-x", stripX + "px");
   drawerSwitches.forEach(updateDrawerSwitchClip);
+  detailSwitches.forEach(updateDetailSwitchClip);
 }
 
 function setup() {
@@ -1229,7 +1590,7 @@ function frame(now) {
   openT += dt;
 
   updatePaneWaves(reducedMotion ? Math.max(dt, 1) : dt);
-  colorLeft = drawerId ? drawerR : homeRight;
+  colorLeft = detailId ? detailR : drawerId ? drawerR : homeRight;
 
   if (drawerSwitches.length) {
     const dur = reducedMotion ? 0.01 : CFG.switchIn;
@@ -1243,8 +1604,24 @@ function frame(now) {
     completed.forEach(finishDrawerSwitch);
   }
 
+  if (detailSwitches.length) {
+    const dur = reducedMotion ? 0.01 : CFG.switchIn;
+    const completed = [];
+    for (const transition of detailSwitches) {
+      transition.p = Math.min(1, transition.p + dt / dur);
+      transition.vis = reducedMotion ? transition.p : paneGlide(transition.p);
+      updateDetailSwitchClip(transition);
+      if (transition.p >= 1) completed.push(transition);
+    }
+    completed.forEach(finishDetailSwitch);
+  }
+
   if (!paneIntentOpen && drawerId && paneCellsMatch(false) && drawerSwitches.length === 0) {
     finishClose();
+  }
+  if (!detailIntentOpen && detailId &&
+      (detailCompact || (paneCellsMatch(false, "detail") && detailSwitches.length === 0))) {
+    finishDetailClose();
   }
 
   while (wake.length && realT - wake[0].t > WAKE_LIFE) wake.shift();
@@ -1287,10 +1664,11 @@ function frame(now) {
 
   ctx.fillStyle = "#140c08";
   ctx.fillRect(0, 0, W, H);
-  if (drawerId) {
+  if (drawerId || detailId) {
+    const paneRight = Math.max(drawerId ? drawerR : drawerL, detailId ? detailR : drawerL);
     for (let j = 1; j < rows - 1; j++) {
       const py = offY + j * cell;
-      for (let i = drawerL; i < drawerR; i++) {
+      for (let i = drawerL; i < paneRight; i++) {
         if (paneCellOpen[j * cols + i] === 1) {
           ctx.clearRect(offX + i * cell, py, cell, cell);
         }
@@ -1305,11 +1683,11 @@ function frame(now) {
       const onBorder = onBorderY || i === 0 || i === cols - 1;
       const onHome = !onBorder && i < homeRight;
       if (onHome) continue;
-      const inDrawer = !onBorder && i >= drawerL && i < drawerR;
-      const drawerCellOpen =
-        inDrawer &&
-        drawerId &&
-        paneCellOpen[j * cols + i] === 1;
+      const inDrawer = !!drawerId && !onBorder && i >= drawerL && i < drawerR;
+      const inDetail = !!detailId && !onBorder && i >= detailL && i < detailR;
+      const activePane = inDetail ? "detail" : inDrawer ? "drawer" : null;
+      const activeSwitches = activePane === "detail" ? detailSwitches : drawerSwitches;
+      const paneCellIsOpen = !!activePane && paneCellOpen[j * cols + i] === 1;
 
       if (onBorder) {
         ctx.fillStyle = "#1e140e";
@@ -1367,16 +1745,16 @@ function frame(now) {
         }
 
         const paneGlow = paneWaveLight(i, j);
-        if (!inDrawer && paneGlow > 0.002) {
+        if (!activePane && paneGlow > 0.002) {
           b = Math.min(1, b + paneGlow);
           s += paneGlow * 0.045;
         }
 
-        if (inDrawer) {
+        if (activePane) {
           let cover = 0;
           let edgeGlow = 0;
-          if (drawerSwitches.length) {
-            for (const transition of drawerSwitches) {
+          if (activeSwitches.length) {
+            for (const transition of activeSwitches) {
               const e = switchBandEdge(i, j, transition);
               cover = Math.max(cover, sm(clamp01(e + 1)));
               edgeGlow = Math.max(edgeGlow, wipeGlow(Math.abs(e), 2.2));
@@ -1390,7 +1768,7 @@ function frame(now) {
             ctx.fillRect(offX + i * cell, py, cell, cell);
             b *= cover;
             b = Math.min(1, b + edgeGlow);
-          } else if (drawerCellOpen) {
+          } else if (paneCellIsOpen) {
             if (paneGlow <= 0.025) continue;
             /* A passing pane wave can temporarily crest over revealed text,
                but its opacity and position can only evolve with time. */
@@ -1440,9 +1818,14 @@ function frame(now) {
 }
 
 function onContentClick(e) {
-  const a = e.target.closest("a[data-go], a[data-work]");
+  const a = e.target.closest("a[data-go], a[data-work], a[data-detail]");
   if (!a) return;
   e.preventDefault();
+  const detail = a.getAttribute("data-detail");
+  if (detail) {
+    openDetail(detail, a);
+    return;
+  }
   const work = a.getAttribute("data-work");
   const go = a.getAttribute("data-go");
   if ((work && work === workId && workLocked) || (go && go === drawerId && paneIntentOpen)) {
@@ -1457,6 +1840,7 @@ function onContentClick(e) {
 }
 deckEl.addEventListener("click", onContentClick);
 drawerEl.addEventListener("click", onContentClick);
+detailEl.addEventListener("click", onContentClick);
 deckEl.addEventListener("pointerover", e => {
   const a = e.target.closest("a[data-work]");
   if (!a || workLocked) return;
@@ -1470,7 +1854,7 @@ deckEl.addEventListener("pointerout", e => {
 });
 
 deckEl.addEventListener("wheel", e => {
-  /* Vertical scroll inside a tall pane — only jack when mostly horizontal
+  /* Vertical scroll inside a tall pane. Only jack when mostly horizontal
      or when the pane can't scroll further in that direction. */
   const pane = e.target.closest(".pane");
   const mostlyX = Math.abs(e.deltaX) > Math.abs(e.deltaY);
@@ -1486,7 +1870,11 @@ deckEl.addEventListener("wheel", e => {
 
 addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey) return;
-  if (e.key === "Escape" && drawerId) closeDrawer();
+  if (e.key === "Escape" && detailId) {
+    if (detailIntentOpen) closeDetail();
+    else finishDetailClose();
+  }
+  else if (e.key === "Escape" && drawerId) closeDrawer();
   else if (e.key === "Escape" && workLocked) applyWork(null, true);
   else if (e.key === "m") { ensureTickAudio(); toggleMute(); }
 });
@@ -1532,6 +1920,7 @@ document.addEventListener("visibilitychange", () => {
 
 bootPanes();
 setup();
+syncDetailLinks();
 if (location.hash || location.search) history.replaceState(null, "", location.pathname);
 deckEl.classList.add("show");
 deckEl.setAttribute("aria-hidden", "false");
