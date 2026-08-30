@@ -2170,9 +2170,17 @@ function hydrateRoute({ initial = false } = {}) {
 
 function cameraTargetForDepth(depth) {
   if (depth <= 0) return 0;
+  const paneLeft = sidePad + depth * paneStride;
   const paneRight = sidePad + depth * paneStride + paneW;
-  /* Cleanup lands on the surviving stack's edge. Keep one whole light cell
-     after its last pane instead of centering it or pinning it to the glass. */
+
+  /* After the detail pane closes, place its surviving parent one cell in
+     from the left. That small overlap keeps the first pane visibly connected
+     to it instead of landing directly on the viewport edge. */
+  if (depth === 1 && paneRight + cell > viewportW) {
+    return clampCameraX(paneLeft - cell);
+  }
+
+  /* Wider views keep the whole surviving stack and its outer cell visible. */
   return clampCameraX(paneRight + cell - viewportW);
 }
 
