@@ -1,5 +1,6 @@
 .wrangler/
-audio/
+audio/*
+!audio/miracle-432hz.44f4e541.m4a
 
 # macOS
 .DS_Store
