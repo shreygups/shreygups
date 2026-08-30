@@ -32,25 +32,28 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/favicon.gif" type="image/gif" sizes="64x64">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+<link rel="preload" href="/fonts/american-grotesk-regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/american-grotesk-medium.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/american-grotesk-italic.woff2" as="font" type="font/woff2" crossorigin>
 <style>
   @font-face {
     font-family: americanGrotesk;
     src: url("/fonts/american-grotesk-regular.woff2") format("woff2");
-    font-display: swap;
+    font-display: block;
     font-weight: 400;
     font-style: normal;
   }
   @font-face {
     font-family: americanGrotesk;
     src: url("/fonts/american-grotesk-italic.woff2") format("woff2");
-    font-display: swap;
+    font-display: block;
     font-weight: 400;
     font-style: italic;
   }
   @font-face {
     font-family: americanGrotesk;
     src: url("/fonts/american-grotesk-medium.woff2") format("woff2");
-    font-display: swap;
+    font-display: block;
     font-weight: 500;
     font-style: normal;
   }
@@ -64,7 +67,7 @@
   }
   :root {
     --bg: #140c08;
-    --line: #3a2418;
+    --line: color-mix(in srgb, var(--accent) 5%, var(--bg));
     --ink: #fff6e8;
     --accent: #ff9f1c;
     --link: #ffc8a0;
@@ -107,9 +110,25 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
     background: var(--bg);
     touch-action: none;
+  }
+  #stage::-webkit-scrollbar {
+    display: none;
+  }
+  #world {
+    position: relative;
+    width: var(--world-w, 100%);
+    min-width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
   }
   canvas {
     position: absolute;
@@ -152,7 +171,7 @@
     background: var(--bg);
   }
   #drawer {
-    left: calc(var(--side-pad, 20px) + var(--pane-w, 25%));
+    left: var(--drawer-left, calc(var(--side-pad, 20px) + var(--pane-w, 25%)));
   }
   #detail {
     left: var(--detail-left, calc(var(--side-pad, 20px) + var(--pane-w, 25%) + var(--pane-w, 25%)));
@@ -165,7 +184,7 @@
     width: 1.5px;
     z-index: 1;
     pointer-events: none;
-    background: color-mix(in srgb, var(--accent) 15%, var(--bg));
+    background: var(--line);
   }
   #drawer.open,
   #detail.open {
@@ -208,7 +227,8 @@
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior-x: auto;
+    overscroll-behavior-y: contain;
     touch-action: pan-y;
     -webkit-user-select: text;
     user-select: text;
@@ -235,6 +255,20 @@
     padding: var(--cell);
   }
   .editorial .name { font-weight: 500; }
+  .editorial .title-label {
+    position: relative;
+    display: inline-block;
+    max-width: calc(100% - 1.5rem);
+    line-height: 1;
+    vertical-align: baseline;
+  }
+  @supports (text-box-trim: trim-both) and (text-box-edge: cap alphabetic) {
+    .editorial .title-label,
+    .work-list .link-label {
+      text-box-trim: trim-both;
+      text-box-edge: cap alphabetic;
+    }
+  }
   .editorial i, .editorial em, .pane i, .pane em { font-style: italic; }
   .editorial h1 {
     margin: 0 0 8px;
@@ -260,13 +294,17 @@
   nav.work-list {
     margin: 0 0 1em;
   }
-  .work-list a,
-  .work-list span {
+  .work-list a {
     display: inline-flex;
     align-items: center;
+    min-height: 1.5em;
     gap: 0.35em;
   }
-  .work-list .close-icon {
+  .work-list .link-label {
+    display: inline-block;
+    line-height: 1;
+  }
+  .close-icon {
     position: relative;
     display: inline-block;
     flex: 0 0 auto;
@@ -275,18 +313,32 @@
     background: currentColor;
     border-radius: 50%;
   }
-  .work-list .close-icon svg {
+  .close-icon svg {
     position: absolute;
     inset: 0;
     display: block;
     width: 100%;
     height: 100%;
   }
-  .work-list .close-icon path {
+  .close-icon path {
     fill: none;
     stroke: var(--bg);
     stroke-width: 1.6;
     stroke-linecap: round;
+  }
+  .pane-close {
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 0.15rem);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    transform: translateY(-50%);
+  }
+  #stage.stack-clipped .pane-close {
+    display: inline-flex;
   }
   #about .social-links {
     display: flex;
@@ -309,15 +361,17 @@
 </head>
 <body>
 <div id="stage">
-  <canvas id="wall"></canvas>
-  <div id="deck" aria-hidden="true">
-    <div id="strip"></div>
-  </div>
-  <div id="drawer">
-    <div id="drawer-body"></div>
-  </div>
-  <div id="detail" role="region" aria-hidden="true" aria-label="Project details">
-    <div id="detail-body"></div>
+  <div id="world">
+    <canvas id="wall"></canvas>
+    <div id="deck" aria-hidden="true">
+      <div id="strip"></div>
+    </div>
+    <div id="drawer">
+      <div id="drawer-body"></div>
+    </div>
+    <div id="detail" role="region" aria-hidden="true" aria-label="Project details">
+      <div id="detail-body"></div>
+    </div>
   </div>
 </div>
 
@@ -336,7 +390,6 @@
     </p>
     <p class="work-list">
       <a href="/projects" data-go="projects">Projects</a>
-      <a href="/thoughts" data-go="thoughts">Thoughts</a>
     </p>
     <p class="social-links">
       <a href="https://twitter.com/shreygups" target="_blank" rel="noopener noreferrer">Twitter</a>
@@ -350,7 +403,7 @@
     <p>For all of 2025 and much of 2026, I worked on Olive as co-founder &amp; CTO. It took on a few shapes over time, but the core product we shipped &amp; sold was AI-native internal tools.</p>
     <p>My close friend <a class="text-link" href="https://x.com/bardia_safari" target="_blank" rel="noopener noreferrer">Bardia</a> and I decided to start a company after a great experience working on Fundsy together. We were both in school and getting more interested in our experiments, so we decided to go full time on it. During the YC W25 batch, we launched as "<a class="text-link" href="https://www.ycombinator.com/launches/MvY-olive-build-internal-tools-with-natural-language" target="_blank" rel="noopener noreferrer">Lovable for internal tools</a>."</p>
     <p>It was exciting to build a cloud platform where you could use AI to build tools connected to your database. A company's database is one of its most prized assets, so we cared a lot about the safety of our code &amp; infrastructure, but also what controls the AI agents we built had. When we started, there was no Claude Code and the best model for coding was Claude Sonnet 3.5.</p>
-    <p>We loved working with customers with around 20 employees. Ones we could talk with on Monday, prototype something in a few days, ship by Wednesday, get feedback &amp; iterate &amp; ship again by Friday. We slowly realized this type of product worked best in enterprise environments. There was a distinct moment in Orlando at a business &amp; data leaders conference where we realized six-month sales cycles and company politics would hurt that iteration speed.</p>
+    <p>We loved working with customers with around 20 employees. Ones we could talk with on Monday, prototype something in a few days, ship by Wednesday, get feedback &amp; iterate &amp; ship again by Friday. Though, we slowly realized this type of product worked best in enterprise environments. There was a distinct moment in Orlando at a business &amp; data leaders conference where we realized six-month sales cycles and company politics would hurt that iteration speed.</p>
     <p>We decided to pivot a space with unmatched iteration speed: consumer apps. It was exhilarating building &amp; publishing apps that our friends could use. It made us closer to our friends in a way AI B2B SaaS could never. Over five months, we shipped two apps.</p>
     <p>The first was an app to find great ideas &amp; inspiration from the web. We wanted to do away with the brainrot consuming all of our social media. There was a time when the internet made you feel inspired, from funny blogs to detailed technical deep dives. We wanted to put those behind a recommender system and put those on your phone as a morning routine.</p>
     <p>Our second app was called Treehouse: FaceTime with games. I started using Zoom to call my girlfriend because it was better for sharing music. Bardia and his friends would play games on FaceTime and it was a weirdly difficult experience. We were big Houseparty users back in the day so this was a very nostalgic project of ours.</p>
@@ -399,10 +452,6 @@
       <a href="/projects/home-networking" data-detail="project-home-networking" aria-controls="detail" aria-expanded="false">Home Networking</a>
       <a href="/projects/zoom-bookmarks" data-detail="project-zoom-bookmarks" aria-controls="detail" aria-expanded="false">Zoom Bookmarks</a>
     </nav>
-  </article>
-  <article class="pane editorial" id="thoughts">
-    <p class="name">Thoughts</p>
-    <p>wip</p>
   </article>
 </div>
 
@@ -506,6 +555,11 @@ const CFG = {
 const stage = document.getElementById("stage");
 const wall = document.getElementById("wall");
 const ctx = wall.getContext("2d");
+const lineColorProbe = document.createElement("span");
+lineColorProbe.style.cssText = "position:fixed;width:0;height:0;background:var(--line)";
+document.body.appendChild(lineColorProbe);
+const borderFill = getComputedStyle(lineColorProbe).backgroundColor;
+lineColorProbe.remove();
 const deckEl = document.getElementById("deck");
 const stripEl = document.getElementById("strip");
 const holdEl = document.getElementById("hold");
@@ -514,6 +568,8 @@ const drawerBodyEl = document.getElementById("drawer-body");
 const detailEl = document.getElementById("detail");
 const detailBodyEl = document.getElementById("detail-body");
 const projectHoldEl = document.getElementById("project-hold");
+drawerEl.inert = true;
+drawerEl.setAttribute("aria-hidden", "true");
 detailEl.inert = true;
 let drawerId = null;
 const drawerSwitches = [];
@@ -524,7 +580,7 @@ let detailReturnLink = null;
 let detailRestoreFocus = true;
 let detailFocusPending = null;
 const detailSwitches = [];
-const PANE_ORDER = ["about", "olive", "campsite", "nasa", "fundsy", "irvine", "capital", "projects", "thoughts"];
+const PANE_ORDER = ["about", "olive", "campsite", "nasa", "fundsy", "irvine", "capital", "projects"];
 const paneById = Object.fromEntries(
   Array.from(holdEl.querySelectorAll(".pane")).map(p => [p.id, p])
 );
@@ -546,8 +602,7 @@ const ROUTES = [
   { path: "/projects/aggieworks", title: "AggieWorks", drawerId: "projects", detailId: "project-aggieworks" },
   { path: "/projects/katamundi", title: "Katamundi", drawerId: "projects", detailId: "project-katamundi" },
   { path: "/projects/home-networking", title: "Home Networking", drawerId: "projects", detailId: "project-home-networking" },
-  { path: "/projects/zoom-bookmarks", title: "Zoom Bookmarks", drawerId: "projects", detailId: "project-zoom-bookmarks" },
-  { path: "/thoughts", title: "Thoughts", drawerId: "thoughts" }
+  { path: "/projects/zoom-bookmarks", title: "Zoom Bookmarks", drawerId: "projects", detailId: "project-zoom-bookmarks" }
 ];
 const ROUTE_BY_PATH = Object.fromEntries(ROUTES.map(route => [route.path, route]));
 const PATH_BY_WORK = Object.fromEntries(ROUTES.filter(route => route.workId).map(route => [route.workId, route.path]));
@@ -568,7 +623,7 @@ const LEGACY_HASH_PATHS = {
   capital: "/work/capital-one",
   "capital-one": "/work/capital-one",
   projects: "/projects",
-  thoughts: "/thoughts",
+  thoughts: "/",
   "project-yappin": "/projects/yappin",
   "project-phinances": "/projects/phinances",
   "project-parking": "/projects/davis-parking",
@@ -582,6 +637,7 @@ let paneEls = [];
 
 let paneW = 0, paneH = 0, paneGap = 0, paneTop = 0, sidePad = 0;
 let paneStride = 0;
+let viewportW = 0, worldW = 0, viewCols = 0;
 let colorLeft = 1;
 let homeRight = 1, drawerCols = 0, drawerL = 1, drawerR = 1, detailL = 1, detailR = 1;
 let paneIntentOpen = false;
@@ -591,6 +647,9 @@ let paneCellOpen = new Uint8Array(0);
 let paneCellEvent = new Uint32Array(0);
 let paneCellLayoutKey = "";
 let targetPane = 0, stripX = 0, stripTarget = 0, stripFrom = 0, stripAnimT = 1;
+let cameraFrom = 0, cameraTarget = 0, cameraAnimT = 1, cameraDuration = 0;
+let cameraStartVelocity = 0, cameraInertiaVelocity = 0;
+let cameraOpening = false;
 
 function fillLUT(out, palette) {
   const stops = palette.map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
@@ -648,16 +707,65 @@ function makeCloseIcon() {
   return icon;
 }
 
+function makeLinkLabel(label) {
+  const text = document.createElement("span");
+  text.className = "link-label";
+  text.textContent = label;
+  return text;
+}
+
+function ensureLinkLabel(link, label) {
+  let text = link.querySelector(":scope > .link-label");
+  if (!text) {
+    text = makeLinkLabel(label);
+    const icon = link.querySelector(":scope > .close-icon");
+    link.replaceChildren(text);
+    if (icon) link.appendChild(icon);
+  } else if (text.textContent !== label) {
+    text.textContent = label;
+  }
+  return text;
+}
+
+function appendPaneClose(heading, href, attribute) {
+  if (!heading || heading.querySelector("[" + attribute + "]")) return;
+  const label = heading.textContent.trim();
+  const title = document.createElement("span");
+  title.className = "title-label";
+  title.textContent = label;
+  const close = document.createElement("a");
+  close.className = "pane-close";
+  close.href = href;
+  close.setAttribute(attribute, "");
+  close.setAttribute("aria-label", "Close " + label);
+  close.appendChild(makeCloseIcon());
+  title.appendChild(close);
+  heading.replaceChildren(title);
+}
+
+function preparePaneCloseControls() {
+  Object.values(paneById).forEach(pane => {
+    if (pane.id === "about") return;
+    appendPaneClose(pane.querySelector(".name"), "/", "data-close-drawer");
+  });
+  Object.values(detailById).forEach(pane => {
+    const heading = pane.querySelector(".name[tabindex]");
+    appendPaneClose(heading, "/projects", "data-close-detail");
+  });
+}
+
 function syncWorkLinks() {
   deckEl.querySelectorAll("a[data-work], a[data-go]").forEach(a => {
     const label = a.dataset.label || a.textContent.replace(/^\[|\]$/g, "");
     a.dataset.label = label;
+    ensureLinkLabel(a, label);
     const work = a.getAttribute("data-work");
     const go = a.getAttribute("data-go");
     const active = (work && workLocked && work === workId) ||
       (!work && go && go === drawerId && paneIntentOpen);
-    a.replaceChildren(document.createTextNode(label));
-    if (active) a.appendChild(makeCloseIcon());
+    const icon = a.querySelector(":scope > .close-icon");
+    if (active && !icon) a.appendChild(makeCloseIcon());
+    else if (!active && icon) icon.remove();
     a.classList.toggle("is-on", active);
     if (active) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
@@ -668,9 +776,11 @@ function syncDetailLinks() {
   document.querySelectorAll("a[data-detail]").forEach(a => {
     const label = a.dataset.label || a.textContent;
     a.dataset.label = label;
+    ensureLinkLabel(a, label);
     const active = detailIntentOpen && a.getAttribute("data-detail") === detailId;
-    a.replaceChildren(document.createTextNode(label));
-    if (active) a.appendChild(makeCloseIcon());
+    const icon = a.querySelector(":scope > .close-icon");
+    if (active && !icon) a.appendChild(makeCloseIcon());
+    else if (!active && icon) icon.remove();
     a.classList.toggle("is-on", active);
     a.setAttribute("aria-expanded", active ? "true" : "false");
     if (active) a.setAttribute("aria-current", "page");
@@ -737,14 +847,18 @@ function splashMask(e) {
   return m < 0 ? 0 : m > 1 ? 1 : m * m * (3 - 2 * m);
 }
 
-/*
- * Pane motion is impulse-based: every open/close action adds a wave.
- * Existing waves are never reversed, replaced, or deleted by a later input.
- */
+/* Pane motion has one owner per band. A reversal inherits the current
+   front, texture, and energy so rapid input stays continuous. */
+function paneWaveBirth(wave) {
+  const duration = wave.action === "close" ? 0.56 : 0.24;
+  const progress = wave.age <= 0 ? 0 : wave.age >= duration ? 1 : sm(wave.age / duration);
+  return wave.action === "close" ? progress : 0.58 + 0.42 * progress;
+}
+
 function paneWaveFlow(wave, j) {
   const t = wave.age;
   const seed = wave.seed;
-  const born = t <= 0 ? 0 : t >= 0.2 ? 1 : t / 0.2;
+  const born = paneWaveBirth(wave);
   const breath = 0.82 + 0.18 * Math.sin(t * 1.9 + wave.phase);
   return (
     (fbm(j * 0.13 + seed, t * 0.22, 73.4 + seed) - 0.5) * 2 * CFG.drawerFlowCols * breath +
@@ -765,7 +879,8 @@ function paneWaveGlowWidth(wave, j) {
     (fbm(j * 0.15 + seed * 0.4, t * 0.18, 146.2 + seed) - 0.5) * 2 * CFG.drawerFlexCols +
     Math.sin(j * 0.28 - t * 1.1 + wave.phase) * 0.55;
   const breath = Math.sin(t * 1.6 + seed * 0.7) * 0.65;
-  return Math.max(1.5, CFG.drawerGlowCols + flow + breath);
+  const born = paneWaveBirth(wave);
+  return Math.max(1.5, 1.5 + (CFG.drawerGlowCols - 1.5 + flow + breath) * born);
 }
 
 function paneBand(name) {
@@ -782,18 +897,93 @@ function setPaneIntent(name, open) {
 function markPaneBand(name, open) {
   const { left, right } = paneBand(name);
   const value = open ? 1 : 0;
+  const event = ++paneWaveSeq;
   for (let j = 1; j < rows - 1; j++) {
-    for (let i = left; i < right; i++) paneCellOpen[j * cols + i] = value;
+    for (let i = left; i < right; i++) {
+      const index = j * cols + i;
+      paneCellOpen[index] = value;
+      paneCellEvent[index] = event;
+    }
   }
+}
+
+function retirePaneWaves(name) {
+  for (let i = paneWaves.length - 1; i >= 0; i--) {
+    if (paneWaves[i].band === name) paneWaves.splice(i, 1);
+  }
+}
+
+function takePaneWave(name) {
+  for (let i = paneWaves.length - 1; i >= 0; i--) {
+    if (paneWaves[i].band === name) return paneWaves.splice(i, 1)[0];
+  }
+  return null;
+}
+
+function settlePaneBand(name, open) {
+  retirePaneWaves(name);
+  markPaneBand(name, open);
 }
 
 function ensurePaneCells() {
   const layoutKey = [cols, rows, drawerL, drawerR, detailL, detailR].join(":");
   if (paneCellOpen.length === Math.max(0, cols * rows) && paneCellLayoutKey === layoutKey) return;
+  const previousLayout = paneCellLayoutKey.split(":").map(Number);
+  const previousOpen = paneCellOpen;
+  const previousEvent = paneCellEvent;
+  const hasPreviousLayout = previousLayout.length === 6 &&
+    previousLayout.every(Number.isFinite) &&
+    previousOpen.length === previousLayout[0] * previousLayout[1];
+
   paneCellLayoutKey = layoutKey;
-  paneWaves.length = 0;
   paneCellOpen = new Uint8Array(Math.max(0, cols * rows));
   paneCellEvent = new Uint32Array(paneCellOpen.length);
+
+  if (hasPreviousLayout) {
+    const [oldCols, oldRows, oldDrawerL, oldDrawerR, oldDetailL, oldDetailR] = previousLayout;
+    const copyBand = (oldLeft, oldRight, newLeft, newRight) => {
+      const oldWidth = Math.max(1, oldRight - oldLeft);
+      const newWidth = Math.max(1, newRight - newLeft);
+      const oldInteriorRows = Math.max(1, oldRows - 2);
+      for (let j = 1; j < rows - 1; j++) {
+        /* Height changes add or remove rows at the bottom, so existing
+           world rows stay fixed instead of vertically stretching. */
+        const oldJ = Math.min(oldRows - 2, Math.max(1, j));
+        if (oldJ < 1 || oldJ > oldInteriorRows) continue;
+        for (let i = newLeft; i < newRight; i++) {
+          const u = (i - newLeft + 0.5) / newWidth;
+          const oldI = Math.min(oldRight - 1, oldLeft + Math.floor(u * oldWidth));
+          const oldIndex = oldJ * oldCols + oldI;
+          const newIndex = j * cols + i;
+          paneCellOpen[newIndex] = previousOpen[oldIndex];
+          paneCellEvent[newIndex] = previousEvent[oldIndex];
+        }
+      }
+    };
+
+    copyBand(oldDrawerL, oldDrawerR, drawerL, drawerR);
+    copyBand(oldDetailL, oldDetailR, detailL, detailR);
+
+    const lead = 1.15;
+    for (const wave of paneWaves) {
+      const oldMin = wave.left - lead;
+      const oldMax = wave.right - 1 + lead;
+      const progress = oldMax === oldMin ? 0.5 : (wave.x - oldMin) / (oldMax - oldMin);
+      const nextBand = wave.band === "stack"
+        ? { left: drawerL, right: detailR }
+        : paneBand(wave.band);
+      const nextMin = nextBand.left - lead;
+      const nextMax = nextBand.right - 1 + lead;
+      wave.left = nextBand.left;
+      wave.right = nextBand.right;
+      wave.x = nextMin + (nextMax - nextMin) * progress;
+      wave.speed = (drawerCols + lead * 2) / CFG.revealIn;
+      wave.velocity = wave.speed;
+    }
+    return;
+  }
+
+  paneWaves.length = 0;
   if (paneIntentOpen && drawerId) markPaneBand("drawer", true);
   if (detailIntentOpen && detailId) markPaneBand("detail", true);
 }
@@ -809,51 +999,119 @@ function paneCellsMatch(open, name = "drawer") {
   return true;
 }
 
-function emitPaneWave(action, name = "drawer") {
+function emitPaneWave(action, name = "drawer", { predecessor = null } = {}) {
   const opening = action === "open";
+  if (reducedMotion) {
+    setPaneIntent(name, opening);
+    settlePaneBand(name, opening);
+    return 0;
+  }
   const dir = opening ? 1 : -1;
   const { left, right } = paneBand(name);
-  const opposite = [...paneWaves].reverse().find(wave =>
+  const opposite = predecessor || [...paneWaves].reverse().find(wave =>
     wave.band === name && wave.action !== action && wave.strength > 0.02
   );
   /* Start on the pane lip so the first tiles move immediately, then
      only travel that column instead of the whole color field. */
   const lead = 1.15;
+  const minSource = left - lead;
+  const maxSource = right - 1 + lead;
   const source = opposite
-    ? opposite.x
-    : (opening ? left - lead : right - 1 + lead);
+    ? Math.max(minSource, Math.min(maxSource, opposite.x))
+    : (opening ? minSource : maxSource);
   const speed = (right - left + lead * 2) / CFG.revealIn;
+  const target = opening ? maxSource : minSource;
+  const duration = Math.max(0.18, Math.abs(target - source) / speed);
+
+  /* A band has one owner at a time. Reversals inherit only the position
+     inside that band, never the long fading tail beyond it. */
+  retirePaneWaves(name);
 
   paneWaves.push({
     id: ++paneWaveSeq,
     band: name,
     action,
     dir,
+    left,
+    right,
     x: source,
     velocity: speed,
     speed,
-    age: 0,
-    strength: opening ? 1 : 0,
-    seed: Math.random() * 1000,
-    phase: Math.random() * Math.PI * 2
+    age: opposite ? opposite.age : 0,
+    strength: opposite ? opposite.strength : opening ? 1 : 0,
+    seed: opposite ? opposite.seed : Math.random() * 1000,
+    phase: opposite ? opposite.phase : Math.random() * Math.PI * 2
   });
   setPaneIntent(name, opening);
+  return duration;
+}
+
+function emitCascadeClose() {
+  const lead = 1.15;
+  const left = drawerL;
+  const right = detailR;
+  const minSource = left - lead;
+  const maxSource = right - 1 + lead;
+  const predecessor = !detailIntentOpen
+    ? [...paneWaves].reverse().find(wave =>
+        wave.action === "close" && wave.strength > 0.02 &&
+        (wave.band === "detail" || wave.band === "stack")
+      )
+    : null;
+  const source = predecessor
+    ? Math.max(minSource, Math.min(maxSource, predecessor.x))
+    : maxSource;
+  const speed = (drawerCols + lead * 2) / CFG.revealIn;
+  const duration = Math.max(CFG.paneAnimDur, (source - minSource) / speed);
+
+  retirePaneWaves("drawer");
+  retirePaneWaves("detail");
+  retirePaneWaves("stack");
+  paneIntentOpen = false;
+  detailIntentOpen = false;
+
+  if (reducedMotion) {
+    settlePaneBand("detail", false);
+    settlePaneBand("drawer", false);
+    return 0;
+  }
+
+  paneWaves.push({
+    id: ++paneWaveSeq,
+    band: "stack",
+    action: "close",
+    dir: -1,
+    left,
+    right,
+    x: source,
+    velocity: speed,
+    speed,
+    age: predecessor ? predecessor.age : 0,
+    strength: predecessor ? predecessor.strength : 0,
+    seed: predecessor ? predecessor.seed : Math.random() * 1000,
+    phase: predecessor ? predecessor.phase : Math.random() * Math.PI * 2
+  });
+  return duration;
 }
 
 function updatePaneWaves(dt) {
   const lead = 1.15;
-  const finishAt = lead + 2;
   for (let w = paneWaves.length - 1; w >= 0; w--) {
     const wave = paneWaves[w];
-    const { left, right } = paneBand(wave.band);
+    const { left, right } = wave;
     wave.age += dt;
     wave.x += wave.dir * wave.speed * dt;
 
     const beyond = wave.dir > 0
       ? Math.max(0, wave.x - (right - 1 + lead))
       : Math.max(0, (left - lead) - wave.x);
+    /* The cell mask can finish before the light impulse does. Let the
+       remaining energy travel into the ambient field and settle over a
+       couple of seconds instead of popping off with the pane DOM. */
+    const tailSeconds = wave.action === "close" ? 2.4 : 1.8;
+    const finishAt = Math.max(lead + 2, wave.speed * tailSeconds);
     const strengthTarget = beyond > 0 ? Math.max(0, 1 - beyond / finishAt) : 1;
-    const strengthRate = strengthTarget > wave.strength ? 8 : 4;
+    const strengthRate = strengthTarget > wave.strength ? 8 : 1.6;
     wave.strength += (strengthTarget - wave.strength) * (1 - Math.exp(-dt * strengthRate));
 
     for (let j = 1; j < rows - 1; j++) {
@@ -870,17 +1128,26 @@ function updatePaneWaves(dt) {
   }
 }
 
-function paneWaveLight(i, j) {
+function paneWaveLight(i, j, activePane) {
   let glow = 0;
   for (const wave of paneWaves) {
-    const left = wave.band === "detail" ? detailL : drawerL;
-    const right = wave.band === "detail" ? detailR : drawerR;
-    const onField = i < left || i >= right;
+    const { left, right } = wave;
+    const inOwnBand = i >= left && i < right;
+    const inOpenWorld = !activePane && i >= right;
+    /* Never send the impulse left across existing text. The open side of
+       the stack is safe: there it can become part of the ambient field. */
+    if (!inOwnBand && !inOpenWorld) continue;
     const width = paneWaveGlowWidth(wave, j);
     const e = paneWaveEdge(wave, i, j);
-    if (Math.abs(e) > width * 1.8) continue;
-    let amt = wipeGlow(e, width) * wave.strength;
-    if (onField && wave.action === "close") amt *= 0.28;
+    let amt = Math.abs(e) <= width * 1.8
+      ? wipeGlow(e, width) * wave.strength
+      : 0;
+    if (wave.action === "close" && e > 0) {
+      const worldDistance = Math.max(0, i - (right - 1));
+      const worldFalloff = Math.exp(-worldDistance / 12);
+      const behind = sm(clamp01(e / Math.max(1, width)));
+      amt += 0.11 * behind * worldFalloff * wave.strength;
+    }
     glow += amt;
   }
   return Math.min(1.25, glow);
@@ -889,6 +1156,11 @@ function paneWaveLight(i, j) {
 function wipeGlow(e, width) {
   const q = e / width;
   return Math.exp(-q * q * 2.2) * 0.85;
+}
+
+function exposeLight(base, glow) {
+  const clamped = Math.max(0, Math.min(1, base));
+  return 1 - (1 - clamped) * Math.exp(-1.25 * glow);
 }
 
 function switchBandCenter(progress) {
@@ -1027,7 +1299,7 @@ let dragging = false, lastTileKey = -1;
 
 function pointerOnField(cx, cy) {
   if (!cols) return false;
-  const x = (cx - offX) / cell, y = (cy - offY) / cell;
+  const x = (cx + stage.scrollLeft - offX) / cell, y = (cy - offY) / cell;
   const i = Math.floor(x), j = Math.floor(y);
   const onDrawerText =
     drawerId &&
@@ -1044,7 +1316,7 @@ function pointerOnField(cx, cy) {
 }
 function stampWake(cx, cy, force) {
   if (!pointerOnField(cx, cy)) return;
-  const x = (cx - offX) / cell, y = (cy - offY) / cell;
+  const x = (cx + stage.scrollLeft - offX) / cell, y = (cy - offY) / cell;
   const last = wake[wake.length - 1];
   if (!force && last && Math.hypot(x - last.x, y - last.y) < WAKE_GAP && realT - last.t < 0.035) return;
   wake.push({ x, y, t: realT });
@@ -1053,7 +1325,7 @@ function stampWake(cx, cy, force) {
 function mouseSpark(cx, cy, strong, force) {
   if (!pointerOnField(cx, cy)) return;
   ensureTickAudio();
-  const x = (cx - offX) / cell, y = (cy - offY) / cell;
+  const x = (cx + stage.scrollLeft - offX) / cell, y = (cy - offY) / cell;
   const key = ((x * 2) | 0) + ((y * 2) | 0) * 4096;
   if (key === lastTileKey && !force) return;
   lastTileKey = key;
@@ -1158,6 +1430,8 @@ function bootPanes() {
 function mountDrawer(id) {
   if (drawerId && drawerId !== id && paneById[drawerId]) holdEl.appendChild(paneById[drawerId]);
   drawerId = id;
+  paneById[id].inert = false;
+  paneById[id].removeAttribute("aria-hidden");
   paneById[id].style.clipPath = "";
   paneById[id].style.pointerEvents = "";
   drawerBodyEl.appendChild(paneById[id]);
@@ -1167,6 +1441,8 @@ function mountDrawer(id) {
 function disposeDrawerLayer(layer, keep) {
   if (layer === keep) return;
   if (layer.id && paneById[layer.id] === layer) {
+    layer.inert = false;
+    layer.removeAttribute("aria-hidden");
     layer.style.clipPath = "";
     layer.style.pointerEvents = "";
     holdEl.appendChild(layer);
@@ -1175,13 +1451,15 @@ function disposeDrawerLayer(layer, keep) {
   }
 }
 
-function settleDrawerLayers() {
+function settleDrawerLayers({ resetScroll = true } = {}) {
   if (!drawerId || !paneById[drawerId]) return;
   const canonical = paneById[drawerId];
   Array.from(drawerBodyEl.children).forEach(layer => disposeDrawerLayer(layer, canonical));
+  canonical.inert = false;
+  canonical.removeAttribute("aria-hidden");
   canonical.style.clipPath = "";
   canonical.style.pointerEvents = "";
-  canonical.scrollTop = 0;
+  if (resetScroll) canonical.scrollTop = 0;
   drawerBodyEl.appendChild(canonical);
 }
 
@@ -1217,31 +1495,43 @@ function startDrawerSwitch(id) {
   const sourcePane = paneById[id];
   if (!sourcePane) return;
 
-  /* A snapshot layer lets each quick selection keep sweeping independently,
-     including when the user returns to a page already lower in the stack. */
+  /* A snapshot layer lets one flowing front replace the current page. Rapid
+     selections retarget that front without restarting or stacking another. */
   const layer = sourcePane.cloneNode(true);
   layer.removeAttribute("id");
   layer.dataset.pageId = id;
-  layer.setAttribute("aria-hidden", "true");
-  layer.inert = true;
+  layer.setAttribute("aria-hidden", "false");
+  layer.inert = false;
   layer.scrollTop = 0;
   layer.style.clipPath = "inset(0 0 100% 0)";
-  layer.style.pointerEvents = "none";
+  layer.style.pointerEvents = "auto";
   drawerBodyEl.querySelectorAll(":scope > .pane").forEach(pane => {
     pane.style.pointerEvents = "none";
+    pane.inert = true;
+    pane.setAttribute("aria-hidden", "true");
   });
-  drawerBodyEl.appendChild(layer);
-
-  const transition = {
-    to: id,
-    layer,
-    p: 0,
-    vis: 0,
-    seed: Math.random() * 1000,
-    phase: Math.random() * Math.PI * 2
-  };
-  drawerSwitches.push(transition);
+  const transition = drawerSwitches[0];
+  if (transition) {
+    /* One light front owns this band. Rapid selections retarget that same
+       moving front instead of stacking several conflicting silhouettes. */
+    transition.layer.replaceWith(layer);
+    transition.layer = layer;
+    transition.to = id;
+    updateDrawerSwitchClip(transition);
+  } else {
+    drawerBodyEl.appendChild(layer);
+    drawerSwitches.push({
+      to: id,
+      layer,
+      p: 0,
+      vis: 0,
+      seed: Math.random() * 1000,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
   drawerId = id;
+  drawerEl.inert = false;
+  drawerEl.setAttribute("aria-hidden", "false");
   drawerEl.classList.add("open");
   layoutDeck();
 }
@@ -1267,17 +1557,19 @@ function mountDetail(id) {
     projectHoldEl.appendChild(detailById[detailId]);
   }
   detailId = id;
+  detailById[id].inert = false;
+  detailById[id].removeAttribute("aria-hidden");
   detailById[id].style.clipPath = "";
   detailById[id].style.pointerEvents = "";
   detailBodyEl.appendChild(detailById[id]);
   detailEl.classList.add("open");
-  detailEl.setAttribute("aria-hidden", "false");
-  detailEl.inert = false;
 }
 
 function disposeDetailLayer(layer, keep) {
   if (layer === keep) return;
   if (layer.id && detailById[layer.id] === layer) {
+    layer.inert = false;
+    layer.removeAttribute("aria-hidden");
     layer.style.clipPath = "";
     layer.style.pointerEvents = "";
     projectHoldEl.appendChild(layer);
@@ -1286,13 +1578,15 @@ function disposeDetailLayer(layer, keep) {
   }
 }
 
-function settleDetailLayers() {
+function settleDetailLayers({ resetScroll = true } = {}) {
   if (!detailId || !detailById[detailId]) return;
   const canonical = detailById[detailId];
   Array.from(detailBodyEl.children).forEach(layer => disposeDetailLayer(layer, canonical));
+  canonical.inert = false;
+  canonical.removeAttribute("aria-hidden");
   canonical.style.clipPath = "";
   canonical.style.pointerEvents = "";
-  canonical.scrollTop = 0;
+  if (resetScroll) canonical.scrollTop = 0;
   detailBodyEl.appendChild(canonical);
 }
 
@@ -1312,11 +1606,6 @@ function finishDetailSwitch(transition) {
   if (detailSwitches.length === 0) {
     settleDetailLayers();
     for (let k = 0; k < cache.length; k++) cache[k] = undefined;
-    if (detailFocusPending === detailId) {
-      const id = detailFocusPending;
-      detailFocusPending = null;
-      requestAnimationFrame(() => focusDetailHeading(id));
-    }
   }
 }
 
@@ -1333,28 +1622,37 @@ function startDetailSwitch(id) {
   const layer = sourcePane.cloneNode(true);
   layer.removeAttribute("id");
   layer.dataset.detailId = id;
-  layer.setAttribute("aria-hidden", "true");
-  layer.inert = true;
+  layer.setAttribute("aria-hidden", "false");
+  layer.inert = false;
   layer.scrollTop = 0;
   layer.style.clipPath = "inset(0 0 100% 0)";
-  layer.style.pointerEvents = "none";
+  layer.style.pointerEvents = "auto";
   detailBodyEl.querySelectorAll(":scope > .pane").forEach(pane => {
     pane.style.pointerEvents = "none";
+    pane.inert = true;
+    pane.setAttribute("aria-hidden", "true");
   });
-  detailBodyEl.appendChild(layer);
-
-  detailSwitches.push({
-    to: id,
-    layer,
-    p: 0,
-    vis: 0,
-    seed: Math.random() * 1000,
-    phase: Math.random() * Math.PI * 2
-  });
+  const transition = detailSwitches[0];
+  if (transition) {
+    transition.layer.replaceWith(layer);
+    transition.layer = layer;
+    transition.to = id;
+    updateDetailSwitchClip(transition);
+  } else {
+    detailBodyEl.appendChild(layer);
+    detailSwitches.push({
+      to: id,
+      layer,
+      p: 0,
+      vis: 0,
+      seed: Math.random() * 1000,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
   detailId = id;
-  detailEl.classList.add("open");
-  detailEl.setAttribute("aria-hidden", "false");
   detailEl.inert = false;
+  detailEl.setAttribute("aria-hidden", "false");
+  detailEl.classList.add("open");
   layoutDeck();
 }
 
@@ -1365,48 +1663,33 @@ function openDetail(id, trigger, { focusHeading = true } = {}) {
     return;
   }
 
-  detailReturnLink = trigger || projectLinkForDetail(id);
+  /* Switch layers are temporary clones. Keep focus restoration anchored to
+     the canonical Projects link that will remain after the wipe settles. */
+  detailReturnLink = projectLinkForDetail(id) || trigger;
   detailRestoreFocus = true;
-  detailEl.setAttribute("aria-hidden", "false");
-  detailEl.inert = false;
+  detailFocusPending = focusHeading ? id : null;
 
   if (id === detailId) {
     detailEl.classList.add("open");
-    if (detailCompact) {
-      detailIntentOpen = true;
-      markPaneBand("detail", true);
-    } else {
-      emitPaneWave("open", "detail");
-    }
+    emitPaneWave("open", "detail");
     layoutDeck();
+    panToDepth(2, { opening: true });
     syncDetailLinks();
-    if (focusHeading) requestAnimationFrame(() => focusDetailHeading(id));
     return;
   }
 
   if (detailId) {
     if (!detailIntentOpen) {
-      if (detailCompact) {
-        detailIntentOpen = true;
-        markPaneBand("detail", true);
-      } else {
-        emitPaneWave("open", "detail");
-      }
-    }
-    startDetailSwitch(id);
-    detailFocusPending = focusHeading ? id : null;
-  } else {
-    mountDetail(id);
-    if (detailCompact) {
-      detailIntentOpen = true;
-      markPaneBand("detail", true);
-    } else {
       emitPaneWave("open", "detail");
     }
-    if (focusHeading) requestAnimationFrame(() => focusDetailHeading(id));
+    startDetailSwitch(id);
+  } else {
+    mountDetail(id);
+    emitPaneWave("open", "detail");
   }
 
   layoutDeck();
+  panToDepth(2, { opening: true });
   syncDetailLinks();
 }
 
@@ -1417,6 +1700,9 @@ function finishDetailClose() {
 
   detailSwitches.splice(0);
   Array.from(detailBodyEl.children).forEach(layer => disposeDetailLayer(layer));
+  /* The content is gone, but the optical tail remains part of the world
+     until updatePaneWaves lets it settle naturally. */
+  markPaneBand("detail", false);
   detailId = null;
   detailIntentOpen = false;
   detailFocusPending = null;
@@ -1426,6 +1712,9 @@ function finishDetailClose() {
   detailEl.setAttribute("aria-hidden", "true");
   detailEl.inert = true;
   layoutDeck();
+  if (stage.scrollLeft > clampCameraX(stage.scrollLeft) + 0.5) {
+    panToDepth(paneIntentOpen ? 1 : 0);
+  }
   syncDetailLinks();
 
   if (restore && canRestoreDetailFocus(returnLink) && drawerId === "projects" && paneIntentOpen) {
@@ -1447,16 +1736,40 @@ function closeDetail({ restoreFocus = true } = {}) {
   }
 
   if (!detailIntentOpen) {
-    if (detailCompact) finishDetailClose();
-    else syncDetailLinks();
+    syncDetailLinks();
     return;
   }
-  if (detailCompact) {
-    finishDetailClose();
-    return;
+  if (detailSwitches.length) {
+    detailSwitches.splice(0);
+    settleDetailLayers();
   }
   emitPaneWave("close", "detail");
+  panToDepth(1);
   syncDetailLinks();
+}
+
+function resumeDrawerFromStack() {
+  if (paneIntentOpen) return false;
+  const stack = takePaneWave("stack");
+  if (!stack) return false;
+
+  /* A stack close owns both columns. Reopening the parent splits that one
+     owner into a continuing child cleanup and, if needed, a parent reversal. */
+  detailIntentOpen = false;
+  if (detailId) {
+    detailEl.setAttribute("aria-hidden", "true");
+    detailEl.inert = true;
+    if (paneCellsMatch(false, "detail")) settlePaneBand("detail", false);
+    else emitPaneWave("close", "detail", { predecessor: stack });
+  }
+
+  if (paneCellsMatch(true, "drawer")) {
+    paneIntentOpen = true;
+    settlePaneBand("drawer", true);
+  } else {
+    emitPaneWave("open", "drawer", { predecessor: stack });
+  }
+  return true;
 }
 
 function openDrawer(id) {
@@ -1465,37 +1778,64 @@ function openDrawer(id) {
     closeDrawer();
     return;
   }
+  const resumedFromStack = resumeDrawerFromStack();
   if (id === drawerId) {
-    if (!paneIntentOpen) emitPaneWave("open");
+    if (!paneIntentOpen && !resumedFromStack) emitPaneWave("open");
     drawerEl.classList.add("open");
     layoutDeck();
+    panToDepth(1, { opening: true });
     return;
   }
   /* Keep both pages stacked while one flowing banner replaces the old
      text with the new text row by row. */
   if (drawerId) {
-    if (!paneIntentOpen) emitPaneWave("open");
+    if (!paneIntentOpen && !resumedFromStack) emitPaneWave("open");
     startDrawerSwitch(id);
+    panToDepth(1, { opening: true });
     return;
   }
   mountDrawer(id);
-  emitPaneWave("open");
+  if (!resumedFromStack) emitPaneWave("open");
   layoutDeck();
+  panToDepth(1, { opening: true });
 }
 
 function closeDrawer() {
   if (!drawerId || !paneIntentOpen) return;
-  closeDetail({ restoreFocus: false });
-  emitPaneWave("close");
+  drawerEl.inert = true;
+  drawerEl.setAttribute("aria-hidden", "true");
+  if (drawerSwitches.length) {
+    drawerSwitches.splice(0);
+    settleDrawerLayers();
+  }
+  if (detailId) {
+    detailRestoreFocus = false;
+    detailFocusPending = null;
+    detailEl.setAttribute("aria-hidden", "true");
+    detailEl.inert = true;
+    if (detailSwitches.length) {
+      detailSwitches.splice(0);
+      settleDetailLayers();
+    }
+    const duration = emitCascadeClose();
+    panToDepth(0, { duration });
+    syncDetailLinks();
+  } else {
+    emitPaneWave("close");
+    panToDepth(0);
+  }
   applyWork(null, true, CFG.revealIn);
 }
 
 function finishClose() {
+  /* Detaching text and exhausting light energy are separate moments. */
+  markPaneBand("drawer", false);
   if (drawerId && paneById[drawerId]) holdEl.appendChild(paneById[drawerId]);
   drawerId = null;
   paneIntentOpen = false;
   drawerEl.classList.remove("open");
   layoutDeck();
+  if (stage.scrollLeft > clampCameraX(stage.scrollLeft) + 0.5) panToDepth(0);
   syncWorkLinks();
 }
 
@@ -1546,13 +1886,14 @@ function applyRoute(route, { trigger = null, restoreFocus = false, focusHeading 
     return;
   }
 
-  if (detailId) closeDetail({ restoreFocus });
-
   if (!route.drawerId) {
     if (drawerId) closeDrawer();
+    else if (detailId) closeDetail({ restoreFocus });
     applyWork(null, true, CFG.revealIn);
   } else {
-    applyWork(route.workId || null, true);
+    if (detailId) closeDetail({ restoreFocus });
+    const paletteDuration = drawerId && paneIntentOpen ? CFG.switchIn : CFG.revealIn;
+    applyWork(route.workId || null, true, paletteDuration);
     openDrawer(route.drawerId);
   }
   syncWorkLinks();
@@ -1574,12 +1915,31 @@ function navigateToPath(path, options = {}) {
   syncRouteMetadata(route);
 }
 
-function hydrateRoute() {
+function hydrateRoute({ initial = false } = {}) {
   const { route, needsReplace } = routeFromLocation();
   const routeUrl = route.path + location.search;
   const restoreFocus = route.path === "/projects" &&
     drawerId === "projects" && detailIntentOpen;
   applyRoute(route, { restoreFocus });
+
+  if (initial) {
+    /* A direct URL is the initial composition, not a replay of clicks from
+       home. Mount it fully, then let the one opening splash reveal it. */
+    paneWaves.length = 0;
+    if (drawerId) settlePaneBand("drawer", true);
+    if (detailId) settlePaneBand("detail", true);
+    lutFrom.set(lutTo);
+    lutT = 1;
+    workSeed = workSeedTo;
+    layoutDeck();
+    ensurePaneCells();
+    panToDepth(detailId ? 2 : drawerId ? 1 : 0, {
+      animate: false,
+      opening: !!(detailId || drawerId)
+    });
+    updateRevealGeometry();
+    syncPaneInteractivity();
+  }
   if (needsReplace) history.replaceState({ siteRoute: route.path }, "", routeUrl);
   else if (!history.state || history.state.siteRoute !== route.path) {
     history.replaceState({ siteRoute: route.path }, "", routeUrl);
@@ -1587,36 +1947,177 @@ function hydrateRoute() {
   syncRouteMetadata(route);
 }
 
+function cameraTargetForDepth(depth) {
+  if (depth <= 0) return 0;
+  const paneRight = sidePad + depth * paneStride + paneW;
+  /* Cleanup lands on the surviving stack's edge. Keep one whole light cell
+     after its last pane instead of centering it or pinning it to the glass. */
+  return clampCameraX(paneRight + cell - viewportW);
+}
+
+function cameraTargetForPaneCenter(depth) {
+  const paneCenter = sidePad + depth * paneStride + paneW * 0.5;
+  return clampCameraX(paneCenter - viewportW * 0.5);
+}
+
+function cameraTargetForOpening(depth) {
+  const current = clampCameraX(stage.scrollLeft);
+  const paneLeft = sidePad + depth * paneStride;
+  const requestedRoom = 400;
+
+  /* Keep 300px of pane plus roughly 100px of lights in view. If the
+     current camera already satisfies that range, it does not move. */
+  if (viewportW >= requestedRoom) {
+    const firstCameraWithRoom = paneLeft + requestedRoom - viewportW;
+    const lastCameraWithPane = paneLeft;
+    if (current < firstCameraWithRoom - 0.5) return clampCameraX(firstCameraWithRoom);
+    if (current > lastCameraWithPane + 0.5) return clampCameraX(lastCameraWithPane);
+    return current;
+  }
+
+  /* A sub-400px viewport cannot show the whole requested composition.
+     Center the pane so it remains complete and the spare light is balanced. */
+  return cameraTargetForPaneCenter(depth);
+}
+
+function ambientLightCols() {
+  /* The final border is part of the requested 80% runway. */
+  return Math.max(1, Math.round((viewportW * 0.8 - cell) / cell));
+}
+
+function clampCameraX(x) {
+  const worldMax = Math.max(0, worldW - viewportW);
+  const lightBorderCol = colorLeft + ambientLightCols();
+  const lightWindowEnd = offX + lightBorderCol * cell + tile;
+  const max = Math.min(worldMax, Math.max(0, lightWindowEnd - viewportW));
+  return Math.max(0, Math.min(max, x));
+}
+
+function paneWavePixelSpeed() {
+  const lead = 1.15;
+  return ((drawerCols + lead * 2) * cell) / CFG.revealIn;
+}
+
+function cameraTravelDuration(target) {
+  const distance = Math.abs(target - stage.scrollLeft);
+  if (distance < 0.5) return 0;
+  const glideLinearFactor = 1 / (1 - CFG.paneAccel);
+  return Math.max(0.28, distance * glideLinearFactor / paneWavePixelSpeed());
+}
+
+function cameraPositionAt(u) {
+  const u2 = u * u;
+  const u3 = u2 * u;
+  const h00 = 2 * u3 - 3 * u2 + 1;
+  const h10 = u3 - 2 * u2 + u;
+  const h01 = -2 * u3 + 3 * u2;
+  return h00 * cameraFrom +
+    h10 * cameraDuration * cameraStartVelocity +
+    h01 * cameraTarget;
+}
+
+function cameraAutoVelocity() {
+  if (cameraAnimT >= 1 || cameraDuration <= 0) return 0;
+  const u = cameraAnimT;
+  const u2 = u * u;
+  const dh00 = 6 * u2 - 6 * u;
+  const dh10 = 3 * u2 - 4 * u + 1;
+  const dh01 = -6 * u2 + 6 * u;
+  return (dh00 * cameraFrom +
+    dh10 * cameraDuration * cameraStartVelocity +
+    dh01 * cameraTarget) / cameraDuration;
+}
+
+function cancelCameraPan() {
+  cameraAnimT = 1;
+  cameraStartVelocity = 0;
+  cameraInertiaVelocity = 0;
+  cameraOpening = false;
+  cameraFrom = cameraTarget = stage.scrollLeft;
+}
+
+function panToDepth(depth, { animate = true, duration = null, opening = false } = {}) {
+  const next = opening ? cameraTargetForOpening(depth) : cameraTargetForDepth(depth);
+  const inheritedVelocity = cameraAutoVelocity() || cameraInertiaVelocity;
+  cameraOpening = opening;
+  cameraFrom = stage.scrollLeft;
+  cameraTarget = next;
+  cameraInertiaVelocity = 0;
+  const naturalDuration = cameraTravelDuration(next);
+  cameraDuration = duration == null
+    ? naturalDuration
+    : Math.min(naturalDuration || duration, Math.max(0, duration));
+  if (!animate || reducedMotion || Math.abs(cameraTarget - cameraFrom) < 0.5) {
+    cameraAnimT = 1;
+    cameraStartVelocity = 0;
+    stage.scrollLeft = cameraTarget;
+    syncPaneCloseControls();
+    return;
+  }
+  const velocityLimit = paneWavePixelSpeed() * 1.25;
+  cameraDuration = Math.max(0.01, cameraDuration);
+  const delta = cameraTarget - cameraFrom;
+  const directedVelocity = inheritedVelocity * delta > 0 ? inheritedVelocity : 0;
+  const monotonicLimit = 3 * Math.abs(delta) / cameraDuration;
+  const startVelocityLimit = Math.min(velocityLimit, monotonicLimit);
+  cameraStartVelocity = Math.max(
+    -startVelocityLimit,
+    Math.min(startVelocityLimit, directedVelocity)
+  );
+  cameraAnimT = 0;
+}
+
 function layoutDeck() {
-  /* One unlit tile around the board. Home bar is a thin column;
-     open drawer and detail panes each take another column. */
-  const innerCols = Math.max(1, cols - 2);
+  /* Every pane is one stable 300px unit. On screens too narrow to fit that
+     unit plus its border cells, use the nearest grid width around 90%. */
+  const innerCols = Math.max(1, viewCols - 2);
   const innerRows = Math.max(1, rows - 2);
-  const preferredSidebarCols = Math.max(10, Math.round(innerCols / 4));
-  const sidebarCols = Math.max(1, Math.min(preferredSidebarCols, Math.floor(innerCols / 2)));
+  const fixedSidebarCols = Math.round((300 + gap) / cell);
+  const fixedPaneW = fixedSidebarCols * cell - gap;
+  const fixedFits = offX + cell + fixedPaneW + cell <= viewportW;
+  const compactSidebarCols = Math.max(1, Math.round((viewportW * 0.9 + gap) / cell));
+  const visibleSidebarCols = Math.max(
+    1,
+    Math.floor((viewportW - offX - cell * 2 + gap) / cell)
+  );
+  const sidebarCols = fixedFits
+    ? fixedSidebarCols
+    : Math.min(compactSidebarCols, visibleSidebarCols);
   drawerCols = sidebarCols;
   homeRight = 1 + sidebarCols;
   drawerL = homeRight;
   drawerR = homeRight + sidebarCols;
   detailCompact = innerCols < sidebarCols * 3;
-  detailL = detailCompact ? drawerL : drawerR;
+  detailL = drawerR;
   detailR = detailL + sidebarCols;
   colorLeft = detailId ? detailR : drawerId ? drawerR : homeRight;
+  const mobilePaneLayout = innerCols < sidebarCols * 3;
+  stage.classList.toggle("mobile-panes", mobilePaneLayout);
 
   sidePad = offX + cell;
   paneTop = offY + cell;
   paneW = sidebarCols * cell - gap;
   paneH = innerRows * cell - gap;
-  paneGap = 0;
-  paneStride = paneW;
+  paneGap = gap;
+  paneStride = sidebarCols * cell;
+
+  const finalPaneRight = sidePad + paneStride * 2 + paneW;
+  /* The ambient runway is 80% of a viewport. At its far edge the previous
+     pane still peeks through on the left instead of yielding an all-light view. */
+  const desiredWorldW = Math.max(viewportW, finalPaneRight + viewportW * 0.8);
+  cols = Math.max(viewCols, Math.ceil((desiredWorldW - offX * 2 + gap) / cell));
+  worldW = cols * cell - gap + offX * 2;
+  W = worldW;
 
   const root = document.documentElement.style;
+  root.setProperty("--world-w", worldW + "px");
   root.setProperty("--pane-w", paneW + "px");
   root.setProperty("--pane-h", paneH + "px");
-  root.setProperty("--pane-gap", "0px");
+  root.setProperty("--pane-gap", paneGap + "px");
   root.setProperty("--pane-top", paneTop + "px");
   root.setProperty("--side-pad", sidePad + "px");
-  root.setProperty("--detail-left", sidePad + (detailCompact ? paneW : paneW * 2) + "px");
+  root.setProperty("--drawer-left", sidePad + paneStride + "px");
+  root.setProperty("--detail-left", sidePad + paneStride * 2 + "px");
   detailEl.classList.toggle("compact", detailCompact);
 
   stripTarget = targetPane * paneStride;
@@ -1625,29 +2126,103 @@ function layoutDeck() {
   root.setProperty("--strip-x", stripX + "px");
   drawerSwitches.forEach(updateDrawerSwitchClip);
   detailSwitches.forEach(updateDetailSwitchClip);
+  syncPaneCloseControls();
 }
 
-function setup() {
-  W = stage.clientWidth; H = stage.clientHeight;
-  const dpr = Math.min(devicePixelRatio || 1, 2);
-  tile = CFG.tile; gap = CFG.gap; rad = Math.min(CFG.radius, tile / 2); cell = tile + gap;
-  cols = Math.floor((W + gap) / cell);
-  rows = Math.floor((H + gap) / cell);
-  offX = (W - (cols * cell - gap)) / 2;
-  offY = (H - (rows * cell - gap)) / 2;
-  wall.width = W * dpr; wall.height = H * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  setGridVars();
-  layoutDeck();
-  ensurePaneCells();
-  si = (colorLeft + cols - 2) * 0.5;
+function syncPaneCloseControls() {
+  /* Mounted panes remain visible through their cleanup wave, so controls
+     leave with that wave instead of popping away at click time. */
+  const activeDepth = detailId ? 2 : drawerId ? 1 : 0;
+  const viewLeft = stage.scrollLeft;
+  const viewRight = viewLeft + viewportW;
+  const stackLeft = sidePad;
+  const stackRight = sidePad + activeDepth * paneStride + paneW;
+  const allPanesVisible = stackLeft >= viewLeft - 0.5 &&
+    stackRight <= viewRight + 0.5;
+  const closing = (detailId && !detailIntentOpen) || (drawerId && !paneIntentOpen);
+  const keepVisibleThroughClose = closing && stage.classList.contains("stack-clipped");
+  const stackClipped = activeDepth > 0 && (!allPanesVisible || keepVisibleThroughClose);
+  stage.classList.toggle("stack-clipped", stackClipped);
+}
+
+function updateRevealGeometry() {
+  const revealRight = Math.max(
+    colorLeft,
+    Math.min(cols - 2, colorLeft + ambientLightCols() - 1)
+  );
+  si = (colorLeft + revealRight) * 0.5;
   sj = (rows - 1) * 0.5;
   maxRevealD = Math.max(
     Math.hypot(colorLeft - si, 1 - sj),
-    Math.hypot(cols - 2 - si, 1 - sj),
+    Math.hypot(revealRight - si, 1 - sj),
     Math.hypot(colorLeft - si, rows - 2 - sj),
-    Math.hypot(cols - 2 - si, rows - 2 - sj)
+    Math.hypot(revealRight - si, rows - 2 - sj)
   ) + CFG.jagAmp * 0.5 + CFG.revealSoft;
+}
+
+function setup() {
+  const nextViewportW = stage.clientWidth;
+  const nextH = stage.clientHeight;
+  const hadLayout = viewportW > 0 && H > 0;
+  const previousViewportW = viewportW;
+  const previousSidePad = sidePad;
+  const previousPaneStride = paneStride;
+  const previousScroll = stage.scrollLeft;
+  const widthChanged = hadLayout && Math.abs(nextViewportW - previousViewportW) > 0.5;
+  const cameraWasAnimating = cameraAnimT < 1;
+  const cameraWasOpening = cameraWasAnimating && cameraOpening;
+  const inheritedCameraVelocity = cameraAutoVelocity() || cameraInertiaVelocity;
+  const logicalCenter = hadLayout && previousPaneStride > 0
+    ? (previousScroll + previousViewportW * 0.5 - previousSidePad) / previousPaneStride
+    : 0;
+
+  viewportW = nextViewportW;
+  H = nextH;
+  tile = CFG.tile; gap = CFG.gap; rad = Math.min(CFG.radius, tile / 2); cell = tile + gap;
+  viewCols = Math.max(1, Math.ceil(viewportW / cell));
+  rows = Math.max(1, Math.ceil(H / cell));
+  offX = 0;
+  offY = 0;
+  if (widthChanged) {
+    drawerSwitches.splice(0);
+    detailSwitches.splice(0);
+    if (drawerId) settleDrawerLayers({ resetScroll: false });
+    if (detailId) settleDetailLayers({ resetScroll: false });
+  }
+  layoutDeck();
+  const maxCanvasPixels = 16000000;
+  const maxCanvasDimension = 16384;
+  const dpr = Math.max(0.5, Math.min(
+    devicePixelRatio || 1,
+    2,
+    Math.sqrt(maxCanvasPixels / Math.max(1, W * H)),
+    maxCanvasDimension / Math.max(1, W),
+    maxCanvasDimension / Math.max(1, H)
+  ));
+  wall.width = W * dpr; wall.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  setGridVars();
+  ensurePaneCells();
+  updateRevealGeometry();
+
+  const activeDepth = detailIntentOpen ? 2 : paneIntentOpen ? 1 : 0;
+  if (!hadLayout) {
+    panToDepth(activeDepth, { animate: false });
+  } else if (widthChanged) {
+    stage.scrollLeft = clampCameraX(
+      sidePad + logicalCenter * paneStride - viewportW * 0.5
+    );
+    cameraAnimT = 1;
+    cameraFrom = cameraTarget = stage.scrollLeft;
+    cameraStartVelocity = 0;
+    cameraInertiaVelocity = inheritedCameraVelocity *
+      (previousPaneStride > 0 ? paneStride / previousPaneStride : 1);
+    if (cameraWasAnimating) panToDepth(activeDepth, { opening: cameraWasOpening });
+  } else {
+    /* Height-only visualViewport changes are usually browser chrome or a
+       keyboard. They must not steal horizontal position or cancel motion. */
+    stage.scrollLeft = clampCameraX(previousScroll);
+  }
 }
 
 let openT = 0, sweepDone = false;
@@ -1658,10 +2233,19 @@ let motion = reducedMotion ? 0 : 1;
 function syncMotionPreference(event) {
   reducedMotion = event.matches;
   motion = reducedMotion ? 0 : 1;
+  if (reducedMotion) {
+    if (drawerId) settlePaneBand("drawer", paneIntentOpen);
+    if (detailId) settlePaneBand("detail", detailIntentOpen);
+    panToDepth(detailIntentOpen ? 2 : paneIntentOpen ? 1 : 0, {
+      animate: false,
+      opening: cameraAnimT < 1 && cameraOpening
+    });
+  }
 }
 if (motionPreference.addEventListener) motionPreference.addEventListener("change", syncMotionPreference);
 else motionPreference.addListener(syncMotionPreference);
 let raf = 0, last = performance.now(), realT = 0, wtC = 0, wtW = 0;
+let setupPending = false;
 const sm = u => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
 const clamp01 = u => u <= 0 ? 0 : u >= 1 ? 1 : u;
 
@@ -1713,7 +2297,7 @@ function showFallbackFavicon() {
 
 function updateFavicon(fill) {
   if (!favLink || !fill || document.hidden) return;
-  if (fill === favShown || realT - favAt < 0.08) return;
+  if (fill === favShown || realT - favAt < 0.24) return;
   favShown = fill;
   favAt = realT;
   favCtx.clearRect(0, 0, 64, 64);
@@ -1736,7 +2320,37 @@ function paneGlide(t) {
   return 1 - 0.5 * (v / a) * q * q;
 }
 
+function syncPaneInteractivity() {
+  const drawerReady = !!drawerId && paneIntentOpen;
+  const detailReady = !!detailId && detailIntentOpen &&
+    drawerReady && drawerId === "projects";
+  const detailFocusReady = detailReady && detailSwitches.length === 0 &&
+    paneCellsMatch(true, "detail");
+
+  if (drawerEl.inert === drawerReady) drawerEl.inert = !drawerReady;
+  const drawerHidden = drawerReady ? "false" : "true";
+  if (drawerEl.getAttribute("aria-hidden") !== drawerHidden) {
+    drawerEl.setAttribute("aria-hidden", drawerHidden);
+  }
+
+  if (detailEl.inert === detailReady) detailEl.inert = !detailReady;
+  const detailHidden = detailReady ? "false" : "true";
+  if (detailEl.getAttribute("aria-hidden") !== detailHidden) {
+    detailEl.setAttribute("aria-hidden", detailHidden);
+  }
+
+  if (detailFocusReady && detailFocusPending === detailId) {
+    const id = detailFocusPending;
+    detailFocusPending = null;
+    requestAnimationFrame(() => focusDetailHeading(id));
+  }
+}
+
 function frame(now) {
+  if (setupPending) {
+    setupPending = false;
+    setup();
+  }
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now; realT += dt;
 
@@ -1770,13 +2384,15 @@ function frame(now) {
     completed.forEach(finishDetailSwitch);
   }
 
-  if (!paneIntentOpen && drawerId && paneCellsMatch(false) && drawerSwitches.length === 0) {
-    finishClose();
-  }
   if (!detailIntentOpen && detailId &&
-      (detailCompact || (paneCellsMatch(false, "detail") && detailSwitches.length === 0))) {
+      paneCellsMatch(false, "detail") && detailSwitches.length === 0) {
     finishDetailClose();
   }
+  if (!paneIntentOpen && drawerId && !detailId &&
+      paneCellsMatch(false) && drawerSwitches.length === 0) {
+    finishClose();
+  }
+  syncPaneInteractivity();
 
   while (wake.length && realT - wake[0].t > WAKE_LIFE) wake.shift();
   if (lutT < 1) {
@@ -1798,6 +2414,30 @@ function frame(now) {
     stripX = stripTarget;
     document.documentElement.style.setProperty("--strip-x", stripX + "px");
   }
+
+  if (cameraAnimT < 1) {
+    const dur = reducedMotion ? 0.01 : cameraDuration || CFG.paneAnimDur;
+    cameraAnimT = Math.min(1, cameraAnimT + dt / dur);
+    stage.scrollLeft = clampCameraX(
+      reducedMotion ? cameraTarget : cameraPositionAt(cameraAnimT)
+    );
+    if (cameraAnimT >= 1) {
+      stage.scrollLeft = cameraTarget;
+      cameraStartVelocity = 0;
+      cameraFrom = cameraTarget;
+    }
+  } else if (Math.abs(cameraInertiaVelocity) > 0) {
+    const previous = stage.scrollLeft;
+    const next = clampCameraX(previous + cameraInertiaVelocity * dt);
+    stage.scrollLeft = next;
+    if (Math.abs(next - previous) < 0.01) {
+      cameraInertiaVelocity = 0;
+    } else {
+      cameraInertiaVelocity *= Math.exp(-dt / 0.24);
+      if (Math.abs(cameraInertiaVelocity) < 12) cameraInertiaVelocity = 0;
+    }
+  }
+  syncPaneCloseControls();
 
   const R = CFG.react * motion;
   const swell = 1 + CFG.swellSpeed * R * live.total * live.total;
@@ -1829,6 +2469,7 @@ function frame(now) {
       }
     }
   }
+  const lightFieldRight = Math.min(cols - 1, colorLeft + ambientLightCols());
 
   for (let j = 0; j < rows; j++) {
     const py = offY + j * cell;
@@ -1842,14 +2483,21 @@ function frame(now) {
       const activePane = inDetail ? "detail" : inDrawer ? "drawer" : null;
       const activeSwitches = activePane === "detail" ? detailSwitches : drawerSwitches;
       const paneCellIsOpen = !!activePane && paneCellOpen[j * cols + i] === 1;
+      const inLightField = i >= colorLeft && i < lightFieldRight;
+      const onLightBorder = !onBorder && i === lightFieldRight;
 
-      if (onBorder) {
-        ctx.fillStyle = "#1e140e";
-        ctx.beginPath();
-        ctx.roundRect(offX + i * cell, py, tile, tile, rad);
-        ctx.fill();
+      if (onBorder || onLightBorder) {
+        ctx.fillStyle = borderFill;
+        if (rad > 0) {
+          ctx.beginPath();
+          ctx.roundRect(offX + i * cell, py, tile, tile, rad);
+          ctx.fill();
+        } else {
+          ctx.fillRect(offX + i * cell, py, tile, tile);
+        }
         continue;
       }
+      if (!activePane && !inLightField) continue;
 
       let b = fbm(i * CFG.waveScale + wtW * CFG.waveDriftX,
                     j * CFG.waveScale + wtW * CFG.waveDriftY,
@@ -1898,10 +2546,9 @@ function frame(now) {
           b += g; s += g * 0.1;
         }
 
-        const paneGlow = paneWaveLight(i, j);
+        const paneGlow = paneWaveLight(i, j, activePane);
         if (!activePane && paneGlow > 0.002) {
-          b = Math.min(1, b + paneGlow);
-          s += paneGlow * 0.045;
+          b = exposeLight(b, paneGlow);
         }
 
         if (activePane) {
@@ -1921,17 +2568,16 @@ function frame(now) {
             ctx.fillStyle = "#140c08";
             ctx.fillRect(offX + i * cell, py, cell, cell);
             b *= cover;
-            b = Math.min(1, b + edgeGlow);
+            b = exposeLight(b, edgeGlow);
           } else if (paneCellIsOpen) {
-            if (paneGlow <= 0.025) continue;
+            if (paneGlow <= 0.012) continue;
             /* A passing pane wave can temporarily crest over revealed text,
-               but its opacity and position can only evolve with time. */
+               while every LED keeps the ambient field's full color floor. */
             ctx.fillStyle = "#140c08";
             ctx.fillRect(offX + i * cell, py, cell, cell);
-            b = Math.min(1, b + paneGlow);
+            b = exposeLight(b, paneGlow);
           } else {
-            b = Math.min(1, b + paneGlow);
-            s += paneGlow * 0.045;
+            b = exposeLight(b, paneGlow);
           }
         }
 
@@ -1960,9 +2606,13 @@ function frame(now) {
         if (lutT >= 1) cache[key] = fill;
       }
       ctx.fillStyle = fill;
-      ctx.beginPath();
-      ctx.roundRect(offX + i * cell, py, tile, tile, rad);
-      ctx.fill();
+      if (rad > 0) {
+        ctx.beginPath();
+        ctx.roundRect(offX + i * cell, py, tile, tile, rad);
+        ctx.fill();
+      } else {
+        ctx.fillRect(offX + i * cell, py, tile, tile);
+      }
       if (i === cols - 2 && j === rows - 2) cornerFill = fill;
     }
   }
@@ -1972,11 +2622,19 @@ function frame(now) {
 }
 
 function onContentClick(e) {
-  const a = e.target.closest("a[data-go], a[data-work], a[data-detail]");
+  const a = e.target.closest("a[data-go], a[data-work], a[data-detail], a[data-close-drawer], a[data-close-detail]");
   if (!a) return;
   if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
   if ((a.target && a.target !== "_self") || a.hasAttribute("download")) return;
   e.preventDefault();
+  if (a.hasAttribute("data-close-detail")) {
+    navigateToPath("/projects", { restoreFocus: true });
+    return;
+  }
+  if (a.hasAttribute("data-close-drawer")) {
+    navigateToPath("/");
+    return;
+  }
   const detail = a.getAttribute("data-detail");
   if (detail) {
     const path = detail === detailId && detailIntentOpen ? "/projects" : PATH_BY_DETAIL[detail];
@@ -2008,20 +2666,127 @@ deckEl.addEventListener("pointerout", e => {
   applyWork(null, false);
 });
 
-deckEl.addEventListener("wheel", e => {
-  /* Vertical scroll inside a tall pane. Only jack when mostly horizontal
-     or when the pane can't scroll further in that direction. */
-  const pane = e.target.closest(".pane");
-  const mostlyX = Math.abs(e.deltaX) > Math.abs(e.deltaY);
-  if (!mostlyX && pane) {
-    const dy = e.deltaY;
-    const top = pane.scrollTop;
-    const max = pane.scrollHeight - pane.clientHeight;
-    const atEdge = (dy < 0 && top <= 0) || (dy > 0 && top >= max - 1);
-    if (!atEdge) return;
+let wheelAxis = null;
+let wheelAxisTimer = 0;
+
+function wheelPixels(value, mode, pageSize) {
+  if (mode === WheelEvent.DOM_DELTA_LINE) return value * cell;
+  if (mode === WheelEvent.DOM_DELTA_PAGE) return value * pageSize;
+  return value;
+}
+
+stage.addEventListener("wheel", e => {
+  const maxCamera = Math.max(0, stage.scrollWidth - stage.clientWidth);
+  if (maxCamera < 1) return;
+  const dx = wheelPixels(e.deltaX, e.deltaMode, viewportW);
+  const dy = wheelPixels(e.deltaY, e.deltaMode, H);
+
+  if (!wheelAxis) {
+    if (e.shiftKey || Math.abs(dx) > Math.abs(dy) * 1.15) wheelAxis = "x";
+    else if (Math.abs(dy) > Math.abs(dx) * 1.15) wheelAxis = "y";
+    else wheelAxis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
   }
-  if (mostlyX) e.preventDefault();
+  clearTimeout(wheelAxisTimer);
+  wheelAxisTimer = setTimeout(() => { wheelAxis = null; }, 120);
+
+  if (wheelAxis === "x" || e.shiftKey) {
+    e.preventDefault();
+    cancelCameraPan();
+    stage.scrollLeft = clampCameraX(stage.scrollLeft + (e.shiftKey ? dy : dx));
+  }
+  /* Vertical input belongs exclusively to article scrolling. At an article
+     edge, or over the light field, it stops instead of becoming a camera pan. */
 }, { passive: false });
+
+let touchCamera = null;
+let suppressTouchClickUntil = 0;
+
+function findTouch(touches, id) {
+  for (let i = 0; i < touches.length; i++) {
+    if (touches[i].identifier === id) return touches[i];
+  }
+  return null;
+}
+
+stage.addEventListener("touchstart", e => {
+  if (e.touches.length !== 1) {
+    touchCamera = null;
+    return;
+  }
+  cancelCameraPan();
+  const touch = e.touches[0];
+  touchCamera = {
+    id: touch.identifier,
+    x: touch.clientX,
+    y: touch.clientY,
+    scroll: stage.scrollLeft,
+    mode: null,
+    moved: false,
+    samples: [{ t: performance.now(), scroll: stage.scrollLeft }]
+  };
+}, { passive: true });
+
+stage.addEventListener("touchmove", e => {
+  if (!touchCamera || e.touches.length !== 1) return;
+  const touch = findTouch(e.touches, touchCamera.id);
+  if (!touch) return;
+  const dx = touch.clientX - touchCamera.x;
+  const dy = touch.clientY - touchCamera.y;
+
+  if (!touchCamera.mode && Math.hypot(dx, dy) >= 7) {
+    if (Math.abs(dx) > Math.abs(dy) * 1.1) {
+      touchCamera.mode = "horizontal";
+      cancelCameraPan();
+    } else if (Math.abs(dy) > Math.abs(dx) * 1.1) {
+      touchCamera.mode = "vertical";
+    }
+  }
+  if (touchCamera.mode !== "horizontal") return;
+
+  e.preventDefault();
+  touchCamera.moved = touchCamera.moved || Math.abs(dx) >= 9;
+  stage.scrollLeft = clampCameraX(touchCamera.scroll - dx);
+  const now = performance.now();
+  touchCamera.samples.push({ t: now, scroll: stage.scrollLeft });
+  while (touchCamera.samples.length > 2 && now - touchCamera.samples[0].t > 90) {
+    touchCamera.samples.shift();
+  }
+}, { passive: false });
+
+function finishTouchCamera(e) {
+  if (!touchCamera) return;
+  if (touchCamera.mode === "horizontal" && touchCamera.moved) {
+    const samples = touchCamera.samples;
+    if (samples.length >= 2) {
+      const first = samples[0];
+      const lastSample = samples[samples.length - 1];
+      if (performance.now() - lastSample.t > 80) {
+        cameraInertiaVelocity = 0;
+      } else {
+        const seconds = Math.max(0.016, (lastSample.t - first.t) / 1000);
+        const limit = viewportW * 2.5;
+        const velocity = (lastSample.scroll - first.scroll) / seconds;
+        cameraInertiaVelocity = Math.max(-limit, Math.min(limit, velocity));
+      }
+    }
+    /* Consume only the synthetic click emitted with this drag's touchend.
+       A real follow-up tap must never be swallowed. */
+    suppressTouchClickUntil = performance.now() + 80;
+    if (e.cancelable) e.preventDefault();
+  }
+  touchCamera = null;
+}
+
+stage.addEventListener("touchend", finishTouchCamera, { passive: false });
+stage.addEventListener("touchcancel", () => {
+  cameraInertiaVelocity = 0;
+  touchCamera = null;
+}, { passive: true });
+stage.addEventListener("click", e => {
+  if (performance.now() >= suppressTouchClickUntil) return;
+  e.preventDefault();
+  e.stopPropagation();
+}, true);
 
 addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey) return;
@@ -2035,10 +2800,14 @@ addEventListener("keydown", e => {
 
 addEventListener("popstate", hydrateRoute);
 
-addEventListener("resize", setup);
-addEventListener("orientationchange", setup);
+function scheduleSetup() {
+  setupPending = true;
+}
+
+addEventListener("resize", scheduleSetup);
+addEventListener("orientationchange", scheduleSetup);
 if (visualViewport) {
-  visualViewport.addEventListener("resize", setup);
+  visualViewport.addEventListener("resize", scheduleSetup);
   visualViewport.addEventListener("scroll", () => { scrollTo(0, 0); });
 }
 addEventListener("scroll", () => { scrollTo(0, 0); }, { passive: true });
@@ -2048,8 +2817,7 @@ addEventListener("gesturestart", lockZoom, { passive: false });
 addEventListener("gesturechange", lockZoom, { passive: false });
 addEventListener("gestureend", lockZoom, { passive: false });
 document.addEventListener("touchmove", e => {
-  if (e.touches.length > 1) { e.preventDefault(); return; }
-  if (!e.target.closest(".pane")) e.preventDefault();
+  if (e.touches.length > 1) e.preventDefault();
 }, { passive: false });
 document.addEventListener("dblclick", e => {
   if (!e.target.closest(".pane")) e.preventDefault();
@@ -2074,10 +2842,11 @@ document.addEventListener("visibilitychange", () => {
   raf = requestAnimationFrame(frame);
 });
 
+preparePaneCloseControls();
 bootPanes();
 setup();
 syncDetailLinks();
-hydrateRoute();
+hydrateRoute({ initial: true });
 deckEl.classList.add("show");
 deckEl.setAttribute("aria-hidden", "false");
 raf = requestAnimationFrame(frame);
